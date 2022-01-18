@@ -145,37 +145,38 @@ def change_target_theta(robot, target, corner):
     return None
 
 '''
-Input: Target object, robot object
+Input: Target object, robot object, flag to move backward
 Description: Detects when the robot has a high possibility of being stuck in one of the corners
              (robot being very close to the corner and looking at it).
 Output: flag_locked: robot was detected stuck in one of the corners
         corner: integer that says which corner it is in = 1 - left side, 2- bottom, 3- right side, 4- top
 '''
 
-def robot_locked_corner(target, robot):
+def robot_locked_corner(target, robot, flag_back = False):
     corner = 0
     flag_locked = False
-    if robot.xPos < 3 and (robot.yPos > 110 or robot.yPos < 40):
-        if abs(robot.theta) < 0.35 or abs(robot.theta - pi) < 0.35:  #abs returns the absolute value of the angle
+    if robot.xPos < 15 and (robot.yPos > 110 or robot.yPos < 40):
+        if abs(robot.theta) < deg2rad(30) or abs(robot.theta - pi) < deg2rad(30):  #abs returns the absolute value of the angle
             flag_locked = True
             corner = 1
-    elif robot.xPos > 147 and (robot.yPos > 110 or robot.yPos < 40):
-        if abs(robot.theta) < 0.35 or abs(robot.theta - pi) < 0.35:
+    elif robot.xPos > 155 and (robot.yPos > 110 or robot.yPos < 40):
+        if abs(robot.theta) < deg2rad(30) or abs(robot.theta - pi) < deg2rad(30):
             flag_locked = True
             corner = 3
     if robot.yPos < 5:
-        if (abs(robot.theta) < ((pi / 2) + 0.35)) and (abs(robot.theta) > ((pi / 2) - 0.35)):
+        if (abs(robot.theta) < (deg2rad(90) + deg2rad(30))) and (abs(robot.theta) > (deg2rad(90) - deg2rad(30))):
             flag_locked = True
             corner = 2
     elif robot.yPos > 125:
-        if (abs(robot.theta) < ((pi / 2) + 0.35)) and (abs(robot.theta) < ((pi / 2) - 0.35)):
+        if (abs(robot.theta) < (deg2rad(90) + deg2rad(30))) and (abs(robot.theta) < (deg2rad(90) - deg2rad(30))):
             flag_locked = True
             corner = 4
 
-    if flag_locked: #calls the function change_target_pos
+    if flag_locked and flag_back: #calls the function change_target_pos
         change_target_pos(robot, target, corner)
+        return flag_locked, corner
 
-    return flag_locked, corner
+    return flag_locked
 
 '''
 Input: Robot object, target object, corner variable

@@ -1,6 +1,7 @@
 from numpy import pi, cos, sin, tan, arctan2, sqrt, deg2rad
 
 from execution import univec_controller
+from corners import robot_locked_corner
 
 
 # % Basic Actions
@@ -790,11 +791,18 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
     dist1 = sqrt((robot1.xPos - ball.xPos) ** 2 + (robot1.yPos - ball.yPos) ** 2)
     dist2 = sqrt((robot2.xPos - ball.xPos) ** 2 + (robot2.yPos - ball.yPos) ** 2)
 
+
     if dist2 < dist1: # Strategy if robot 2 is closer to the ball
         if robot1.isLeader is None and robot2.isLeader is None:
             robot2.isLeader = True
             robot1.isLeader = False
             robot2.holdLeader += 1
+
+        elif robot_locked_corner(robot2, ball) and robot2.isLeader:
+            robot1.isLeader = True
+            robot2.isLeader = False
+            robot2.holdLeader = 0
+            robot1.holdLeader += 1            
 
         else:
             if robot2.isLeader:
@@ -814,6 +822,13 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
             robot1.isLeader = True
             robot2.isLeader = False
             robot1.holdLeader += 1
+
+        elif robot_locked_corner(robot1, ball) and robot1.isLeader:
+            robot2.isLeader = True
+            robot1.isLeader = False
+            robot1.holdLeader = 0
+            robot2.holdLeader += 1
+
         else:
             if robot1.isLeader:
                 robot1.holdLeader += 1
