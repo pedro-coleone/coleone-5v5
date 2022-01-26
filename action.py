@@ -798,11 +798,12 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
             robot1.isLeader = False
             robot2.holdLeader += 1
 
-        elif robot_locked_corner(robot2, ball) and robot2.isLeader:
+        elif robot_locked_corner(ball, robot2) and robot2.isLeader:
             robot1.isLeader = True
             robot2.isLeader = False
             robot2.holdLeader = 0
-            robot1.holdLeader += 1            
+            robot1.holdLeader += 1
+            print('2222222222222')
 
         else:
             if robot2.isLeader:
@@ -823,11 +824,12 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
             robot2.isLeader = False
             robot1.holdLeader += 1
 
-        elif robot_locked_corner(robot1, ball) and robot1.isLeader:
+        elif robot_locked_corner(ball, robot1) and robot1.isLeader:
             robot2.isLeader = True
             robot1.isLeader = False
             robot1.holdLeader = 0
             robot2.holdLeader += 1
+            print('111')
 
         else:
             if robot1.isLeader:
