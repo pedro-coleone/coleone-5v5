@@ -57,7 +57,8 @@ if __name__ == "__main__":
     ball = Ball()
 
     strategy = Strategy(robot0, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2, ball, mray, strategySelected)
-
+    for robot in strategy.robots:
+        robot.add_enemies(strategy.enemyRobots)
     # Main infinite loop
     while True:
         t1 = time.time()
