@@ -791,8 +791,39 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
     dist1 = sqrt((robot1.xPos - ball.xPos) ** 2 + (robot1.yPos - ball.yPos) ** 2)
     dist2 = sqrt((robot2.xPos - ball.xPos) ** 2 + (robot2.yPos - ball.yPos) ** 2)
 
+    leader_is_2 = False
 
-    if dist2 < dist1: # Strategy if robot 2 is closer to the ball
+    if not robot1.teamYellow:
+        if ball.xPos > 140 and (ball.yPos < 35 or ball.yPos > 95):
+            if dist2 < dist1:
+                leader_is_2= True
+            else:
+                leader_is_2 = False
+        elif (robot1.xPos > 75 and robot2.xPos > 75) and (robot1.xPos < ball.xPos) and (robot2.xPos > ball.xPos) and ball.xPos > 75:
+            leader_is_2 = False
+        elif (robot1.xPos > 75 and robot2.xPos > 75) and (robot1.xPos > ball.xPos) and (robot2.xPos < ball.xPos) and ball.xPos > 75:
+            leader_is_2 = True
+        elif (robot1.xPos > 75 and robot2.xPos > 75) and (robot1.xPos < ball.xPos) and (robot2.xPos < ball.xPos) and ball.xPos > 75:
+            ang1 = arctan2(ball.yPos - robot1.yPos, ball.xPos - robot1.xPos)
+            ang2 = arctan2(ball.yPos - robot2.yPos, ball.xPos - robot2.xPos)
+            if abs(ang1 - ang2) > deg2rad(90):
+                if abs(ang1) < abs(ang2):
+                    leader_is_2 = False
+                else:
+                    leader_is_2 = True
+        else:
+            if dist2 < dist1:
+                leader_is_2= True
+            else:
+                leader_is_2 = False
+    else:
+        if dist2 < dist1:
+            leader_is_2= True
+        else:
+            leader_is_2 = False       
+
+
+    if leader_is_2: # Strategy if robot 2 is closer to the ball
         if robot1.isLeader is None and robot2.isLeader is None:
             robot2.isLeader = True
             robot1.isLeader = False
@@ -803,13 +834,12 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
             robot2.isLeader = False
             robot2.holdLeader = 0
             robot1.holdLeader += 1
-            print('2222222222222')
 
         else:
             if robot2.isLeader:
                 robot2.holdLeader += 1
             else:
-                if robot1.holdLeader > 60:
+                if robot1.holdLeader > 2*60:
                     robot2.isLeader = True
                     robot1.isLeader = False
                     robot1.holdLeader = 0
@@ -829,13 +859,12 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
             robot1.isLeader = False
             robot1.holdLeader = 0
             robot2.holdLeader += 1
-            print('111')
 
         else:
             if robot1.isLeader:
                 robot1.holdLeader += 1
             else:
-                if robot2.holdLeader > 60:
+                if robot2.holdLeader > 2*60:
                     robot1.isLeader = True
                     robot2.isLeader = False
                     robot1.holdLeader += 1

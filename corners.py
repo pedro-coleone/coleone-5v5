@@ -156,20 +156,28 @@ def robot_locked_corner(target, robot, flag_back = False):
     corner = 0
     flag_locked = False
     if robot.xPos < 15 and (robot.yPos > 110 or robot.yPos < 40):
+        print("L:E pos_robo: ", round(robot.xPos,1), round(robot.yPos,1))
         if abs(robot.theta) < deg2rad(30) or abs(robot.theta - pi) < deg2rad(30):  #abs returns the absolute value of the angle
             flag_locked = True
+            print("L: Esquerdo")
             corner = 1
     elif robot.xPos > 155 and (robot.yPos > 110 or robot.yPos < 40):
+        print("L:D pos_robo: ", round(robot.xPos,1), round(robot.yPos,1))
         if abs(robot.theta) < deg2rad(30) or abs(robot.theta - pi) < deg2rad(30):
             flag_locked = True
+            print("L: Direito")
             corner = 3
     if robot.yPos < 5:
+        print("L:I pos_robo: ", round(robot.xPos,1), round(robot.yPos,1))
         if (abs(robot.theta) < (deg2rad(90) + deg2rad(30))) and (abs(robot.theta) > (deg2rad(90) - deg2rad(30))):
             flag_locked = True
+            print("L: Inferior")
             corner = 2
     elif robot.yPos > 125:
-        if (abs(robot.theta) < (deg2rad(90) + deg2rad(30))) and (abs(robot.theta) < (deg2rad(90) - deg2rad(30))):
+        print("L:S pos_robo: ", round(robot.xPos,1), round(robot.yPos,1))
+        if (abs(robot.theta) < (deg2rad(90) + deg2rad(30))) and (abs(robot.theta) > (deg2rad(90) - deg2rad(30))):
             flag_locked = True
+            print("L: Superior:")
             corner = 4
 
     if flag_locked and flag_back: #calls the function change_target_pos
