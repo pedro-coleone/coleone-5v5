@@ -170,17 +170,25 @@ class Strategy:
         if not self.mray:
             if self.ball.xPos < 40 and 30 < self.ball.yPos < 110:  # If the ball has inside of defense area
                 action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)  # Goalkeeper move ball away
-                self.close_in_enemy()
+                self.close_in_enemy(self.robots[1])
+                action.defender_spin(self.robots[2], self.ball, left_side=not self.mray, friend1=self.robots[0],
+                                     friend2=self.robots[1], enemy1=self.enemyRobots[0], enemy2=self.enemyRobots[1],
+                                     enemy3=self.enemyRobots[2])
             else:
-                self.close_in_enemy()
+                self.close_in_enemy(self.robots[1])
                 action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84,
                                        lower_lim=42)  # Goalkeeper keeps in goal
+                action.defender_spin(self.robots[2], self.ball, left_side=not self.mray, friend1=self.robots[0],
+                                     friend2=self.robots[1], enemy1=self.enemyRobots[0], enemy2=self.enemyRobots[1],
+                                     enemy3=self.enemyRobots[2])
         else:  # The same ideia, but for other team
             if self.ball.xPos > 130 and 30 < self.ball.yPos < 110:
                 action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
-                self.close_in_enemy()
+                self.close_in_enemy(self.robots[1])
+                self.close_in_enemy(self.robots[2])
             else:
-                self.close_in_enemy()
+                self.close_in_enemy(self.robots[1])
+                self.close_in_enemy(self.robots[2])
                 action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84,
                                        lower_lim=42)
 
@@ -291,30 +299,17 @@ class Strategy:
         action.followLeader(self.robots[0], self.robots[1], self.robots[2], self.ball, self.enemyRobots[0],
                             self.enemyRobots[1], self.enemyRobots[2])
 
-    def close_in_enemy(self):
-        for robot in self.robots:
-            robot.sort_enemies()
-        alvo1, alvo2 = None, None
-        for alvo in self.robots[1].enemy_list:
+    def close_in_enemy(self, robot):
+        robot.sort_enemies()
+
+        alvo1 = None
+        for alvo in robot.enemy_list:
             if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray:
                 alvo1 = alvo
                 break
             if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray:
                 alvo1 = alvo
                 break
-        for alvo in self.robots[2].enemy_list:
-            if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray and alvo != alvo1:
-                alvo2 = alvo
-                break
-            if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray and alvo != alvo1:
-                alvo2 = alvo
-                break
 
         if alvo1 is not None:
-            action.follower(self.robots[1], alvo1, self.ball)
-        if alvo2 is not None:
-            action.follower(self.robots[2], alvo2, self.ball)
-
-
-
-
+            action.follower(robot, alvo1, self.ball)
