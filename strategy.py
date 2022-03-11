@@ -309,8 +309,11 @@ class Strategy:
             if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray:
                 alvo2 = alvo
                 break
-        action.follower(self.robots[1], alvo1, self.ball)
-        action.follower(self.robots[2], alvo2, self.ball)
+
+        if alvo1 is not None:
+            action.follower(self.robots[1], alvo1, self.ball)
+        if alvo2 is not None:
+            action.follower(self.robots[2], alvo2, self.ball)
 
 
 
