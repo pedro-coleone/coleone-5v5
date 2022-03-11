@@ -298,4 +298,4 @@ class Strategy:
         if self.robots[2].enemy_list[0] is self.robots[1].enemy_list:    
             action.follower(self.robots[2], self.robots[2].enemy_list[1], self.ball)
         else:
-            action.follower(self.robots[2], self.robots[2].enemy_list[1], self.ball)
+            action.follower(self.robots[2], self.robots[2].enemy_list[0], self.ball)
