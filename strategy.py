@@ -303,10 +303,10 @@ class Strategy:
                 alvo1 = alvo
                 break
         for alvo in self.robots[2].enemy_list:
-            if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray:
+            if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray and alvo != alvo1:
                 alvo2 = alvo
                 break
-            if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray:
+            if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray and alvo != alvo1:
                 alvo2 = alvo
                 break
 
