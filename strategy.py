@@ -294,8 +294,24 @@ class Strategy:
     def close_in_enemy(self):
         for robot in self.robots:
             robot.sort_enemies()
-        action.follower(self.robots[1], self.robots[1].enemy_list[0], self.ball)
-        if self.robots[2].enemy_list[0] == self.robots[1].enemy_list[0]:    
-            action.follower(self.robots[2], self.robots[2].enemy_list[1], self.ball)
-        else:
-            action.follower(self.robots[2], self.robots[2].enemy_list[0], self.ball)
+        alvo1, alvo2 = None, None
+        for alvo in self.robots[1].enemy_list:
+            if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray:
+                alvo1 = alvo
+                break
+            if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray:
+                alvo1 = alvo
+                break
+        for alvo in self.robots[2].enemy_list:
+            if not (alvo.xPos < 40 and 30 < alvo.yPos < 110) and self.mray:
+                alvo2 = alvo
+                break
+            if not (alvo.xPos > 130 and 30 < alvo.yPos < 110) and not self.mray:
+                alvo2 = alvo
+                break
+        action.follower(self.robots[1], alvo1, self.ball)
+        action.follower(self.robots[2], alvo2, self.ball)
+
+
+
+
