@@ -295,7 +295,7 @@ class Strategy:
         for robot in self.robots:
             robot.sort_enemies()
         action.follower(self.robots[1], self.robots[1].enemy_list[0], self.ball)
-        if self.robots[2].enemy_list[0] is self.robots[1].enemy_list:    
+        if self.robots[2].enemy_list[0] == self.robots[1].enemy_list:    
             action.follower(self.robots[2], self.robots[2].enemy_list[1], self.ball)
         else:
             action.follower(self.robots[2], self.robots[2].enemy_list[0], self.ball)
