@@ -184,9 +184,7 @@ class Strategy:
             if self.ball.xPos < 40 and 30 < self.ball.yPos < 110:  # If the ball has inside of defense area
                 action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)  # Goalkeeper move ball away
                 self.close_in_enemy(self.robots[1])
-                action.defender_spin(self.robots[2], self.ball, left_side=not self.mray, friend1=self.robots[0],
-                                     friend2=self.robots[1], enemy1=self.enemyRobots[0], enemy2=self.enemyRobots[1],
-                                     enemy3=self.enemyRobots[2])
+                self.close_in_enemy(self.robots[2])
             else:
                 self.close_in_enemy(self.robots[1])
                 action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84,
@@ -198,9 +196,7 @@ class Strategy:
             if self.ball.xPos > 130 and 30 < self.ball.yPos < 110:
                 action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
                 self.close_in_enemy(self.robots[1])
-                action.defender_spin(self.robots[2], self.ball, left_side=not self.mray, friend1=self.robots[0],
-                                     friend2=self.robots[1], enemy1=self.enemyRobots[0], enemy2=self.enemyRobots[1],
-                                     enemy3=self.enemyRobots[2])
+                self.close_in_enemy(self.robots[2])
             else:
                 self.close_in_enemy(self.robots[1])
                 action.defender_spin(self.robots[2], self.ball, left_side=not self.mray, friend1=self.robots[0],
