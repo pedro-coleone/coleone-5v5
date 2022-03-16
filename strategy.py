@@ -62,9 +62,18 @@ class Strategy:
                     self.stg_att_v2()
             else:
                 if self.ball.xPos > 85:
+                    self.sideChange = False
                     self.stg_att_v2()
                 else:
-                    self.stg_def_v2()
+                    if not self.sideChange:
+                        self.sideChange = True
+                        self.timeStore = self.timer
+                        self.stg_att_v2()
+                    else:
+                        if self.timer - self.timeStore < 300:
+                            self.stg_att_v2()
+                        else:
+                            self.stg_def_v2()
 
     """
     Input: None
@@ -221,7 +230,14 @@ class Strategy:
 
     def stg_att_v2(self):
         self.two_attackers()
-        action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42)
+        if self.ball.xPos < 40 and 30 < self.ball.yPos < 110 and self.mray:  # If the ball has inside of defense area
+            action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
+        elif self.ball.xPos < 130 and 30 < self.ball.yPos < 110 and self.mray:  # If the ball has inside of defense area
+            action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
+
+        else:
+            action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42)
+
         self.robots[0].contStopped = 0
 
     """
