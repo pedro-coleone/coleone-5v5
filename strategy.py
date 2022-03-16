@@ -17,7 +17,9 @@ class Strategy:
         self.penaltyDefensive = False
         self.penaltyOffensive = False
         self.strategy = strategy
-
+        self.timer = 0
+        self.timeStore = 0
+        self.sideChange = False
     """
     Input: None
     Description: Calls the function that initiates the selected strategy.
@@ -36,16 +38,27 @@ class Strategy:
     with one leading and the other in support. Output: None. """
 
     def coach2(self):
+        self.timer += 1
         if self.penaltyDefensive:
             self.penalty_mode_defensive()
         elif self.penaltyOffensive:
             self.penalty_mode_offensive_spin()
         else:
-            # For the time being, the only statuses considered are which side of the field the ball is in
+
             if self.mray:
                 if self.ball.xPos > 85:
-                    self.stg_def_v2()
+                    if not self.sideChange:
+                        self.sideChange = True
+                        self.timeStore = self.timer
+                        self.stg_att_v2()
+                    else:
+                        if self.timer - self.timeStore < 300:
+                            self.stg_att_v2()
+                        else:
+                            self.stg_def_v2()
+
                 else:
+                    self.sideChange = False
                     self.stg_att_v2()
             else:
                 if self.ball.xPos > 85:
