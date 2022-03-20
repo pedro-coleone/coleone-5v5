@@ -85,28 +85,32 @@ if __name__ == "__main__":
         if ref_data["game_on"]:
             # If the game mode is set to "Game on"
             strategy.decider()
+        elif ref_data["foul"] < 5 or ref_data["foul"] == 7:
+            robot2.isLeader = True
+            robot1.isLeader = False
 
-        elif ref_data["foul"] == 1 and ref_data["yellow"] == (not mray):
-            # detecting defensive penalty
-            strategy.penaltyDefensive = True
-            actuator.stop()
-            fouls.replacement_fouls(replacement, ref_data, mray)
 
-        elif ref_data["foul"] == 1 and ref_data["yellow"] == (mray):
-            # detecting offensive penalty
-            strategy.penaltyOffensive = True
-            actuator.stop()
-            fouls.replacement_fouls(replacement, ref_data, mray)
+            if ref_data["foul"] == 1 and ref_data["yellow"] == (not mray):
+                # detecting defensive penalty
+                strategy.penaltyDefensive = True
+                actuator.stop()
+                fouls.replacement_fouls(replacement, ref_data, mray)
 
-        elif ref_data["foul"] != 7:
-            if ref_data["foul"] != 5:  # Changing the flag except in the Stop case
-                strategy.penaltyOffensive = False
-                strategy.penaltyDefensive = False
-            fouls.replacement_fouls(replacement, ref_data, mray)
-            actuator.stop()
+            elif ref_data["foul"] == 1 and ref_data["yellow"] == (mray):
+                # detecting offensive penalty
+                strategy.penaltyOffensive = True
+                actuator.stop()
+                fouls.replacement_fouls(replacement, ref_data, mray)
 
-        else:
-            actuator.stop()
+            elif ref_data["foul"] != 7:
+                if ref_data["foul"] != 5:  # Changing the flag except in the Stop case
+                    strategy.penaltyOffensive = False
+                    strategy.penaltyDefensive = False
+                fouls.replacement_fouls(replacement, ref_data, mray)
+                actuator.stop()
+
+            else:
+                actuator.stop()
 
         # synchronize code execution based on runtime and the camera FPS
         t2 = time.time()
