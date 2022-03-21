@@ -232,7 +232,7 @@ class Strategy:
         self.two_attackers()
         if self.ball.xPos < 40 and 30 < self.ball.yPos < 110 and not self.mray:  # If the ball has inside of defense area
             action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
-        elif self.ball.xPos < 130 and 30 < self.ball.yPos < 110 and self.mray:  # If the ball has inside of defense area
+        elif self.ball.xPos > 130 and 30 < self.ball.yPos < 110 and self.mray:  # If the ball has inside of defense area
             action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
 
         else:
