@@ -18,20 +18,20 @@ HALT = 7
 
 '''
 Input: Replacer client, data from referee, team color (True = Yellow, False = Blue) and foul ID.
-Description: Our robots are replaced in diferents places of the field according to the fouls 
+Description: Our robots are replaced in diferents places of the field according to the fouls
 (using position on X, Y, angle and index of each robot).
-Output: Entity objects. 
+Output: Entity objects.
 '''
 
 def replacement_fouls(replacement, ref_data, mray):
-    ball = Ball() 
+    ball = Ball()
 
     if not mray: # Blue side
         if ref_data["foul"] == 1: # Penalty kick
             if ref_data["yellow"]:  # Defensive
                 entidade0 = Entity(x=13.75, y=65, a=0, index=0) # Goalkeeper
-                entidade1 = Entity(x=90, y=40, a=180, index=1) # Center back 
-                entidade2 = Entity(x=90, y=90, a=0, index=2) # Striker 
+                entidade1 = Entity(x=90, y=40, a=180, index=1) # Center back
+                entidade2 = Entity(x=90, y=90, a=0, index=2) # Striker
             else:  # Ofensive
                 r = random.uniform(0, 1) # Generate random number between 0 and 1
                 if r < 0.5:
@@ -68,12 +68,12 @@ def replacement_fouls(replacement, ref_data, mray):
                 entidade2 = Entity(x=104.5, y=107, a=0, index=2)
             elif ref_data["quad"] == 2: # Second quadrant
                 entidade0 = Entity(x=17.5, y=72.5, a=0, index=0)
-                entidade1 = Entity(x=27.5, y=101, a=0, index=1)
-                entidade2 = Entity(x=30, y=60, a=0, index=2)
+                entidade1 = Entity(x=27.5, y=101, a=0, index=2)
+                entidade2 = Entity(x=30, y=60, a=0, index=1)
             elif ref_data["quad"] == 3: # Third quadrant
                 entidade0 = Entity(x=17.5, y=57.5, a=0, index=0)
-                entidade1 = Entity(x=27.5, y=24, a=0, index=1)
-                entidade2 = Entity(x=30, y=70, a=0, index=2)
+                entidade1 = Entity(x=27.5, y=24, a=0, index=2)
+                entidade2 = Entity(x=30, y=70, a=0, index=1)
             elif ref_data["quad"] == 4: # Fourth quadrant
                 entidade0 = Entity(x=17.5, y=65, a=0, index=0)
                 entidade1 = Entity(x=80, y=40, a=180, index=1)
@@ -95,7 +95,7 @@ def replacement_fouls(replacement, ref_data, mray):
             replacement.place_all([entidade0, entidade1, entidade2]) # Replace each robot
 
     if mray: # Yellow side
-        if ref_data["foul"] == 1:  
+        if ref_data["foul"] == 1:
             if not ref_data["yellow"]: # Defensive
                 entidade0 = Entity(x=156, y=65, a=180, index=0)
                 entidade1 = Entity(x=80, y=90, a=180, index=1)
@@ -131,8 +131,8 @@ def replacement_fouls(replacement, ref_data, mray):
         elif ref_data["foul"] == 3: # Freeball
             if ref_data["quad"] == 1: # First quadrant
                 entidade0 = Entity(x=152.5, y=72.5, a=180, index=0)
-                entidade1 = Entity(x=142.5, y=101, a=180, index=1)
-                entidade2 = Entity(x=135, y=60, a=180, index=2)
+                entidade1 = Entity(x=142.5, y=101, a=180, index=2)
+                entidade2 = Entity(x=135, y=60, a=180, index=1)
             elif ref_data["quad"] == 2: # Second quadrant
                 entidade0 = Entity(x=152.5, y=65, a=180, index=0)
                 entidade1 = Entity(x=90, y=90, a=180, index=1)
@@ -143,8 +143,8 @@ def replacement_fouls(replacement, ref_data, mray):
                 entidade2 = Entity(x=67.5, y=22, a=180, index=2)
             elif ref_data["quad"] == 4: # Fourth quadrant
                 entidade0 = Entity(x=152, y=57.5, a=180, index=0)
-                entidade1 = Entity(x=142, y=28, a=180, index=1)
-                entidade2 = Entity(x=135, y=70, a=180, index=2)
+                entidade1 = Entity(x=142, y=28, a=180, index=2)
+                entidade2 = Entity(x=135, y=70, a=180, index=1)
             replacement.place_all([entidade0, entidade1, entidade2]) # Replace each robot
 
         elif ref_data["foul"] == 4: # Kickoff
