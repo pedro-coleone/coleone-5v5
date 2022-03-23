@@ -806,21 +806,49 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
         elif (robot1.xPos > 75 and robot2.xPos > 75) and (robot1.xPos < ball.xPos) and (robot2.xPos < ball.xPos) and ball.xPos > 75:
             ang1 = arctan2(ball.yPos - robot1.yPos, ball.xPos - robot1.xPos)
             ang2 = arctan2(ball.yPos - robot2.yPos, ball.xPos - robot2.xPos)
-            if abs(ang1 - ang2) > deg2rad(90):
-                if abs(ang1) < abs(ang2):
-                    leader_is_2 = False
+            if abs(ang1) > deg2rad(60) and abs(ang2) < deg2rad(60):
+                leader_is_2 = False
+            
+            elif abs(ang1) < deg2rad(60) and abs(ang2) > deg2rad(60):
+                leader_is_2 = True            
+            else:                
+                if dist2 < dist1:
+                    leader_is_2= True
                 else:
-                    leader_is_2 = True
+                    leader_is_2 = False
         else:
             if dist2 < dist1:
                 leader_is_2= True
             else:
                 leader_is_2 = False
     else:
-        if dist2 < dist1:
-            leader_is_2= True
+        if ball.xPos < 30 and (ball.yPos < 35 or ball.yPos > 95):
+            if dist2 < dist1:
+                leader_is_2= True
+            else:
+                leader_is_2 = False
+        elif (robot1.xPos < 95 and robot2.xPos < 95) and (robot1.xPos > ball.xPos) and (robot2.xPos < ball.xPos) and ball.xPos < 95:
+            leader_is_2 = False
+        elif (robot1.xPos < 95 and robot2.xPos < 95) and (robot1.xPos < ball.xPos) and (robot2.xPos > ball.xPos) and ball.xPos < 95:
+            leader_is_2 = True
+        elif (robot1.xPos < 95 and robot2.xPos < 95) and (robot1.xPos > ball.xPos) and (robot2.xPos > ball.xPos) and ball.xPos < 95:
+            ang1 = arctan2(ball.yPos - robot1.yPos, ball.xPos - robot1.xPos)
+            ang2 = arctan2(ball.yPos - robot2.yPos, ball.xPos - robot2.xPos)
+            if abs(ang1) > deg2rad(60) and abs(ang2) < deg2rad(60):
+                leader_is_2 = False
+            
+            elif abs(ang1) < deg2rad(60) and abs(ang2) > deg2rad(60):
+                leader_is_2 = True            
+            else:                
+                if dist2 < dist1:
+                    leader_is_2= True
+                else:
+                    leader_is_2 = False
         else:
-            leader_is_2 = False       
+            if dist2 < dist1:
+                leader_is_2= True
+            else:
+                leader_is_2 = False       
 
 
     if leader_is_2: # Strategy if robot 2 is closer to the ball
