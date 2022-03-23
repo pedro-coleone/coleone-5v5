@@ -85,7 +85,7 @@ if __name__ == "__main__":
         if ref_data["game_on"]:
             # If the game mode is set to "Game on"
             strategy.decider()
-        elif ref_data["foul"] < 5 or ref_data["foul"] == 7:
+        elif ref_data["foul"] <= 5 or ref_data["foul"] == 7:
             robot2.isLeader = True
             robot1.isLeader = False
 
