@@ -52,14 +52,14 @@ class Strategy:
             # For the time being, the only statuses considered are which side of the field the ball is in
             if self.mray:
                 if self.ball.xPos > 85:
-                    self.stg_def_v2()
+                    self.stg_def_v3()
                 else:
                     self.stg_att_v2()
             else:
                 if self.ball.xPos > 85:
                     self.stg_att_v2()
                 else:
-                    self.stg_def_v2()
+                    self.stg_def_v3()
 
 
     """
@@ -180,6 +180,42 @@ class Strategy:
             else:
                 self.two_attackers()
                 action.screen_out_ball(self.robot0, self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42)
+
+        # Verification if robot has stopped
+        if ((abs(self.robot0.theta) < deg2rad(10)) or (abs(self.robot0.theta) > deg2rad(170))) and (
+                self.robot0.xPos < 20 or self.robot0.xPos > 150):
+            self.robot0.contStopped += 1
+        else:
+            self.robot0.contStopped = 0
+
+    """
+    Input: None
+    Description: Defence part of followleader method, one robot leads chasing ball, another supports,
+                 goalkeeper blocks goal and move ball away when close to the goal
+    Output: None.
+    """
+    def stg_def_v3(self):
+        arrived_center = False
+        if not self.mray:
+            if self.ball.xPos < 32.5 and 30 < self.ball.yPos < 110: # If the ball has inside of defense area
+                action.defender_penalty_direct(self.robot0, self.ball, left_side=not self.mray) # Goalkeeper move ball away
+                self.two_attackers()
+            else:
+                action.back_center(self.robot0, self.ball, left_side=not self.mray)
+                self.two_attackers()
+                if self.robot0.arrive:
+                    #self.robot0.sim_set_vel2(0, 0)
+                    action.screen_out_ball(self.robot0, self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42) # Goalkeeper keeps in goal
+        else: # The same ideia, but for other team
+            if self.ball.xPos > 145 and 30 < self.ball.yPos < 110:
+                action.defender_penalty_direct(self.robot0, self.ball, left_side=not self.mray)
+                self.two_attackers()
+            else:
+                self.two_attackers()
+                action.back_center(self.robot0, self.ball, left_side=not self.mray)
+                if self.robot0.arrive:
+                    #self.robot0.sim_set_vel2(0, 0)
+                    action.screen_out_ball(self.robot0, self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42)
 
         # Verification if robot has stopped
         if ((abs(self.robot0.theta) < deg2rad(10)) or (abs(self.robot0.theta) > deg2rad(170))) and (

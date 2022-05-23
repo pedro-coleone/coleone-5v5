@@ -972,7 +972,7 @@ Output: None
 '''
 
 def leaderSelector(robot1, robot2, ball):
-        
+
     '''
     Calculate the distan of both robots to the ball
     '''
@@ -1103,3 +1103,19 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
                                       enemy1=robot_enemy_0, enemy2=robot_enemy_1, enemy3=robot_enemy_2)
                 else:
                     follower(robot2, robot1, ball, robot0, robot_enemy_0, robot_enemy_1, robot_enemy_2)
+
+def back_center(robot, ball, left_side=True, friend1=None, friend2=None, enemy1=None, enemy2=None, enemy3=None):
+    if left_side:
+        arrival_theta = arctan2(65 - robot.yPos, 15 - robot.xPos)  # Angle between the ball and point (0,65)
+        robot.target.update(15, 65, arrival_theta)
+    else:
+        arrival_theta = arctan2(65 - robot.yPos, 155 - robot.xPos)  # Angle between the ball and point (150,65)
+        robot.target.update(155, 65, arrival_theta)
+
+    if friend1 is None and friend2 is None:  # No friends to avoid
+        v, w = univec_controller(robot, robot.target, avoid_obst=False, n=16, d=2)
+    else:  # Both friends to avoid
+        robot.obst.update(robot, friend1, friend2, enemy1, enemy2, enemy3)
+        v, w = univec_controller(robot, robot.target, True, robot.obst, n=4, d=4)
+
+    robot.sim_set_vel(v, w)
