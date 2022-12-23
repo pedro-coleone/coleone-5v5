@@ -95,6 +95,19 @@ def hold_position(robot, xg, yg, des_theta, friend1=None, friend2=None):
 
     robot.sim_set_vel(v, w)
 
+def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: float, ypos: float, theta:float):
+    robot.target.update(xpos, ypos, theta)
+    
+    if not robot.arrive():
+        robot.vMax = 20
+        #v, w = univec_controller(robot, robot.target, avoid_obst=False) # Calculate linear and angular velocity
+        robot.obst.update2(robot, ball, friend1, friend2, enemy1, enemy2, enemy3)
+        v, w = univec_controller(robot, robot.target, True, robot.obst, n=4, d=4)
+        robot.sim_set_vel(v, w)
+    else:
+        robot.vMax = 50
+        robot.sim_set_vel(0, 0)
+    return
 
 # % Attacker Actions
 
