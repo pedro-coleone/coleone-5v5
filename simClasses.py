@@ -9,6 +9,7 @@ class KinematicBody:
     def __init__(self):
         self._coordinates = SpatialCoordinates()
         self._velocities = Velocities()
+        self._strategy_grid_coordinates = 0
 
     def set_coordinates(self, x, y, rotation):
         self._coordinates.X = x
