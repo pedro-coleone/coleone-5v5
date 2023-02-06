@@ -3,6 +3,7 @@ import sys
 import argparse
 
 import fouls
+import newFouls
 from bridge import (Actuator, Replacer, Vision, Referee)
 from simClasses import *
 from strategy import *
@@ -31,7 +32,7 @@ if __name__ == "__main__":
 
     # Initialize all clients
     actuator = Actuator(mray, "127.0.0.1", 20011)
-    replacement = Replacer(mray, "224.5.23.2", 10004)
+    #replacement = Replacer(mray, "224.5.23.2", 10004)
     vision = Vision(mray, "224.0.0.1", 10002)
     referee = Referee(mray, "224.5.23.2", 10003)
 
@@ -56,6 +57,8 @@ if __name__ == "__main__":
         referee.update()
         ref_data = referee.get_data()
 
+        print(ref_data)
+
         # Update the vision data
         vision.update()
         field = vision.get_field_data()
@@ -76,7 +79,7 @@ if __name__ == "__main__":
         # Update penalty strategy (ap == adaptative penalty) when game is running
         #if args.ap == 'on':
         strategy.detectGoalPenalty(ref_data, ball, mray)
-
+        
         if ref_data["game_on"]:
             # If the game mode is set to "Game on"
             strategy.decider()
@@ -85,14 +88,14 @@ if __name__ == "__main__":
             # detecting defensive penalty
             strategy.penaltyDefensive = True
             strategy.kickoffOffensive = False
-            actuator.stop()
+            #actuator.stop()
             fouls.replacement_fouls(replacement, ref_data, mray, strategy.stOfensePenalty, strategy.stDefensePenalty)
 
         elif ref_data["foul"] == 1 and ref_data["yellow"] == (mray):
             # detecting offensive penalty
             strategy.penaltyOffensive = True
             strategy.kickoffOffensive = False
-            actuator.stop()
+            #actuator.stop()
             fouls.replacement_fouls(replacement, ref_data, mray, strategy.stOfensePenalty, strategy.stDefensePenalty)
 
         # elif ref_data["foul"] == 4 and ref_data["yellow"] == (mray):
@@ -109,11 +112,11 @@ if __name__ == "__main__":
                 strategy.penaltyOffensive = False
                 strategy.penaltyDefensive = False
                 strategy.kickoffOffensive = False
-            fouls.replacement_fouls(replacement, ref_data, mray, args.op, args.dp)
-            actuator.stop()
+            newFouls.automatic_replacement(ref_data, mray, args.op, args.dp, robot0, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2)
+            #actuator.stop()
 
-        else:
-            actuator.stop()
+        #else:
+            #actuator.stop()
         #print(strategy.kickoffOffensive)
 
         # synchronize code execution based on runtime and the camera FPS

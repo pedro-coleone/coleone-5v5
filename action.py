@@ -4,6 +4,7 @@ from execution import univec_controller
 
 import time
 
+import json
 
 # % Basic Actions
 
@@ -94,6 +95,20 @@ def hold_position(robot, xg, yg, des_theta, friend1=None, friend2=None):
         v, w = univec_controller(robot, robot.target, True, robot.obst, stop_when_arrive=True)
 
     robot.sim_set_vel(v, w)
+
+def SendRobotPosition(mray, game_situation, strategy_quadrant, number_robot):
+    with open("position.json") as f:
+        data = json.load(f)
+    
+    side = ''
+    list_robot = ['robot0', 'robot1', 'robot2']
+
+    if mray == True:
+        side = 'yellow'
+    else:
+        side = 'blue'
+
+    return data[side][game_situation][strategy_quadrant][list_robot[number_robot]]
 
 def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: float, ypos: float, theta:float):
     robot.target.update(xpos, ypos, theta)

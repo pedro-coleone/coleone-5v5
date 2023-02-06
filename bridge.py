@@ -357,7 +357,7 @@ class Actuator():
                 self.send(s["index"], s["left"], s["right"])
             except Exception as e:
                 print("speed exception:", e)
-
+    
     def stop(self):
         for i in range(NUM_BOTS):
             self.send(i, 0, 0)

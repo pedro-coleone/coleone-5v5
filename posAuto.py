@@ -1,7 +1,7 @@
 import time
 import sys
 import argparse
-from action import Robot2Position
+from action import Robot2Position, SendRobotPosition
 
 import fouls
 from bridge import (Actuator, Replacer, Vision, Referee)
@@ -72,10 +72,28 @@ if __name__ == "__main__":
         robotEnemy2.sim_get_pose(data_their_bots[2])
         ball.sim_get_pose(data_ball)
 
+        ###############Teste com a leitura do Json###############
+        #Como deve ser feita a leitura? Como deve ser atríbuida essas informações?
+        #Passar as informações para as Entidade do "fouls.py"? 
+        #Remodelar o arquivo(Parace ser inviável)?
+        #Melhor opção parece ser em passar essas informações para as entidades do fouls.py e a partir dai
+        #realizar o posicionamento automático
+
+        lista_r_0 = SendRobotPosition(False, 'kickoff', 'offensive', 0)        
+        lista_r_1 = SendRobotPosition(False, 'kickoff', 'offensive', 1)        
+        lista_r_2 = SendRobotPosition(False, 'kickoff', 'offensive', 2)        
+        
+        Robot2Position(robot0, ball, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2, lista_r_0[0], lista_r_0[1], lista_r_0[2])
+        Robot2Position(robot1, ball, robot0, robot2, robotEnemy0, robotEnemy1, robotEnemy2, lista_r_1[0], lista_r_1[1], lista_r_1[2])
+        Robot2Position(robot2, ball, robot0, robot1, robotEnemy0, robotEnemy1, robotEnemy2, lista_r_2[0], lista_r_2[1], lista_r_2[2])
+        ##########################################################
+        
+        '''
         #robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: float, ypos: float, theta:float)
         Robot2Position(robot0, ball, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2, 85, 75, 0)
         Robot2Position(robot1, ball, robot0, robot2, robotEnemy0, robotEnemy1, robotEnemy2, 85, 65, 0)
         Robot2Position(robot2, ball, robot0, robot1, robotEnemy0, robotEnemy1, robotEnemy2, 85, 55, 0)
+        '''
 
         # # synchronize code execution based on runtime and the camera FPS
         t2 = time.time()
