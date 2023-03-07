@@ -96,7 +96,7 @@ def hold_position(robot, xg, yg, des_theta, friend1=None, friend2=None):
 
     robot.sim_set_vel(v, w)
 
-def SendRobotPosition(mray, game_situation, strategy_quadrant, number_robot):
+def SendRobotPosition(mray, game_situation, offensive_defensive_quadrant, strategy, if_else, number_robot):
     with open("position.json") as f:
         data = json.load(f)
     
@@ -108,7 +108,13 @@ def SendRobotPosition(mray, game_situation, strategy_quadrant, number_robot):
     else:
         side = 'blue'
 
-    return data[side][game_situation][strategy_quadrant][list_robot[number_robot]]
+    if game_situation == 'penalty_kick' and if_else != None:
+        return data[side][game_situation][offensive_defensive_quadrant][strategy][if_else][list_robot[number_robot]]
+    elif game_situation == 'penalty_kick' or game_situation == 'goal_kick' and strategy != None:
+        return data[side][game_situation][offensive_defensive_quadrant][strategy][list_robot[number_robot]]
+    
+
+    return data[side][game_situation][offensive_defensive_quadrant][list_robot[number_robot]]
 
 def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: float, ypos: float, theta:float):
     robot.target.update(xpos, ypos, theta)

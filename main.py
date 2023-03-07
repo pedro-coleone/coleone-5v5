@@ -89,15 +89,16 @@ if __name__ == "__main__":
             strategy.penaltyDefensive = True
             strategy.kickoffOffensive = False
             #actuator.stop()
-            fouls.replacement_fouls(replacement, ref_data, mray, strategy.stOfensePenalty, strategy.stDefensePenalty)
-
+            #fouls.replacement_fouls(replacement, ref_data, mray, strategy.stOfensePenalty, strategy.stDefensePenalty)
+            newFouls.automatic_replacement(ref_data, mray, args.op, args.dp, robot0, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2)
+            
         elif ref_data["foul"] == 1 and ref_data["yellow"] == (mray):
             # detecting offensive penalty
             strategy.penaltyOffensive = True
             strategy.kickoffOffensive = False
             #actuator.stop()
-            fouls.replacement_fouls(replacement, ref_data, mray, strategy.stOfensePenalty, strategy.stDefensePenalty)
-
+            newFouls.automatic_replacement(ref_data, mray, args.op, args.dp, robot0, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2)
+            
         # elif ref_data["foul"] == 4 and ref_data["yellow"] == (mray):
         #     #print("entrei1")
         #     # detecting offensive penalty
@@ -115,8 +116,8 @@ if __name__ == "__main__":
             newFouls.automatic_replacement(ref_data, mray, args.op, args.dp, robot0, robot1, robot2, robotEnemy0, robotEnemy1, robotEnemy2)
             #actuator.stop()
 
-        #else:
-            #actuator.stop()
+        else:
+            actuator.stop()
         #print(strategy.kickoffOffensive)
 
         # synchronize code execution based on runtime and the camera FPS
