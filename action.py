@@ -96,11 +96,20 @@ def hold_position(robot, xg, yg, des_theta, friend1=None, friend2=None):
 
     robot.sim_set_vel(v, w)
 
-def SendRobotPosition(mray, game_situation, offensive_defensive_quadrant, strategy, if_else, number_robot):
-    with open("position.json") as f:
-        data = json.load(f)
-    
+def SendRobotPosition(mray, ref_data, strategy, if_else, number_robot):
+    """
+    FREE_KICK = 0
+    PENALTY_KICK = 1
+    GOAL_KICK = 2
+    FREE_BALL = 3
+    KICKOFF = 4 (Testando para o kickoff)
+    STOP = 5
+    GAME_ON = 6
+    HALT = 7    
+    """
+
     side = ''
+    offensive_defensive_quadrant = ''
     list_robot = ['robot0', 'robot1', 'robot2']
 
     if mray == True:
@@ -108,16 +117,59 @@ def SendRobotPosition(mray, game_situation, offensive_defensive_quadrant, strate
     else:
         side = 'blue'
 
+    #Setting the fouls
+    if ref_data["foul"] == 0:
+        game_situation = 'free_kick'
+    elif ref_data["foul"] == 1:
+        game_situation = 'penalty_kick'
+    elif ref_data["foul"] == 2:
+        game_situation = 'goal_kick'
+    elif ref_data["foul"] == 3:
+        game_situation = 'free_ball'
+    elif ref_data["foul"] == 4:
+        game_situation = 'kickoff'
+    
+    with open("position.json") as f:
+        data = json.load(f)
+    
+    #Setting Offensive or Defensive strategy
+    if ref_data["quad"] == 0:
+        if not mray and ref_data["yellow"]:
+            offensive_defensive_quadrant = 'defensive'
+        elif not mray and not ref_data["yellow"]:
+            offensive_defensive_quadrant = 'offensive'
+        if mray and ref_data["yellow"]:
+            offensive_defensive_quadrant = 'offensive'
+        elif mray and not ref_data["yellow"]:
+            offensive_defensive_quadrant = 'defensive'
+    #Setting the quadrant
+    elif ref_data["quad"] == 1:
+        offensive_defensive_quadrant = 'quad1'
+    elif ref_data["quad"] == 2:
+        offensive_defensive_quadrant = 'quad2'
+    elif ref_data["quad"] == 3:
+        offensive_defensive_quadrant = 'quad3'
+    elif ref_data["quad"] == 4:
+        offensive_defensive_quadrant = 'quad4'
+    
+    #Setting the goal kick strategy. strategy = if ou else
+    if game_situation == 'goal_kick' and if_else != None:
+        if if_else == 'if':
+            strategy = 'if'
+        elif if_else == 'else':
+            strategy = 'else'
+    
     if game_situation == 'penalty_kick' and if_else != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][if_else][list_robot[number_robot]]
     elif game_situation == 'penalty_kick' or game_situation == 'goal_kick' and strategy != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][list_robot[number_robot]]
-    
 
     return data[side][game_situation][offensive_defensive_quadrant][list_robot[number_robot]]
 
-def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: float, ypos: float, theta:float):
-    robot.target.update(xpos, ypos, theta)
+def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, list_r0, list_r1, list_r2):
+    robot.target.update(list_r0[0], list_r0[1], list_r0[2]) #xpos, ypos, theta
+    friend1.target.update(list_r1[0], list_r1[1], list_r1[2]) #xpos, ypos, theta
+    friend2.target.update(list_r2[0], list_r2[1], list_r2[2]) #xpos, ypos, theta
     
     if not robot.arrive():
         robot.vMax = 20
@@ -128,6 +180,25 @@ def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, xpos: 
     else:
         robot.vMax = 50
         robot.sim_set_vel(0, 0)
+    
+    if not friend1.arrive():
+        friend1.vMax = 20
+        friend1.obst.update2(friend1, ball, robot, friend2, enemy1, enemy2, enemy3)
+        v, w = univec_controller(friend1, friend1.target, True, friend1.obst, n=4, d=4)
+        friend1.sim_set_vel(v, w)
+    else:
+        friend1.vMax = 50
+        friend1.sim_set_vel(0, 0)
+
+    if not friend2.arrive():
+        friend2.vMax = 20
+        friend2.obst.update2(friend2, ball, robot, friend1, enemy1, enemy2, enemy3)
+        v, w = univec_controller(friend2, friend2.target, True, friend2.obst, n=4, d=4)
+        friend2.sim_set_vel(v, w)
+    else:
+        friend2.vMax = 50
+        friend2.sim_set_vel(0, 0)
+
     return
 
 # % Attacker Actions
