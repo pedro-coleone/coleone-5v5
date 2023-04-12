@@ -81,7 +81,6 @@ if __name__ == "__main__":
         if not mray:
             sideDecider((robot1.xPos, robot1.yPos), robot1.theta, (ball.xPos, ball.yPos), robot1.index)
 
-        """
         if ref_data["game_on"]:
             # If the game mode is set to "Game on"
             strategy.decider()
@@ -121,7 +120,6 @@ if __name__ == "__main__":
             actuator.stop()
         #print(strategy.kickoffOffensive)
 
-        """
         
         # synchronize code execution based on runtime and the camera FPS
         t2 = time.time()

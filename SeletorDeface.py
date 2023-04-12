@@ -32,7 +32,7 @@ def sideDecider(RobotPos, angle, targetPos, robotIndex):
     costas = pontos[1]
     center, radius = define_circle(targetPos, frente, costas) 
 
-    print(center)
+    #print(center)
 
     if center is not None:
         theta_frente = np.arctan2(frente[1] - center[1], frente[0] - center[0])
@@ -60,14 +60,14 @@ def sideDecider(RobotPos, angle, targetPos, robotIndex):
         if df < dc:
             # ir de frente
             univector = 1
-            print('Univerctor : ', univector)
+            #print('Univerctor : ', univector)
         else:
             # ir de costas
             univector = -1
-            print('Univerctor : ', univector)
+            #print('Univerctor : ', univector)
     if robotIndex == 1:
-        print("\nposição: ", RobotPos)
-        print("univector: ", univector)
+        #print("\nposição: ", RobotPos)
+        print("\nunivector: ", univector)
     
     return univector
 

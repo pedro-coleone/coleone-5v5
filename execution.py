@@ -1,4 +1,4 @@
-from numpy import cos, sin, arctan2, sqrt, sign, pi, delete, append, array
+from numpy import cos, sin, arctan2, sqrt, sign, pi, delete, append, array, rad2deg
 
 from behaviours import Univector
 from corners import target_in_corner
@@ -58,6 +58,10 @@ def univec_controller(robot, target, avoid_obst=True, obst=None, n=8, d=2, stop_
     '''
 
     # Angle correction if robot face is inverted
+    robotPos = (robot.xPos, robot.yPos)
+    targetPos = (target.xPos, target.yPos)
+    
+    robot.face = sideDecider(robotPos, robot.theta, targetPos, robot.index)
     if robot.face == -1:
         robot.theta = arctan2(sin(robot.theta - pi), cos(robot.theta - pi))
 
@@ -110,6 +114,8 @@ def univec_controller(robot, target, avoid_obst=True, obst=None, n=8, d=2, stop_
 
     return v, w
 
+def remap(old_val, old_min, old_max, new_min, new_max):
+    return (new_max - new_min)*(old_val - old_min) / (old_max - old_min) + new_min
 
 # TODO #3 Check the need for flagTrocaFace - lock the face swap in obstacle avoidance
 '''
@@ -122,12 +128,18 @@ def which_face(robot, target, des_theta, double_face):
     robot_pos = (robot.xPos, robot.yPos)  # Robot position
     target = (target.xPos, target.yPos)  # Target position
 
-    uni_vector = sideDecider(robot_pos, robot.theta, target, robot.index)  # Decides the side to go
-
+    #uni_vector = sideDecider(robot_pos, robot.theta, target, robot.index)  # Decides the side to go
+    
+    
     if (abs(theta_e) > pi / 2 + pi / 12) and (
             not robot.flagTrocaFace) and double_face:  # If the angle is convenient for face swap
         robot.face = robot.face * (-1)  # Swaps face
         robot.theta = arctan2(sin(robot.theta + pi), cos(robot.theta + pi))  # Angle re-estimate
         theta_e = arctan2(sin(des_theta - robot.theta), cos(des_theta - robot.theta))  # Error angle re-estimate
 
-    return theta_e * uni_vector
+    
+    #print("\nTheta_e antes: ", rad2deg(theta_e))
+    #if uni_vector == -1:
+    #    theta_e = remap((theta_e + pi)%2*pi, 0, 2*pi, -pi, pi)
+    #print("\nTheta_e depois: ", rad2deg(theta_e))
+    return theta_e
