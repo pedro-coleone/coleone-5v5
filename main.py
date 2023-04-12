@@ -6,6 +6,8 @@ import fouls
 from bridge import (Actuator, Replacer, Vision, Referee)
 from simClasses import *
 from strategy import *
+from SeletorDeface import sideDecider
+
 
 if __name__ == "__main__":
 
@@ -31,7 +33,7 @@ if __name__ == "__main__":
 
     # Initialize all clients
     actuator = Actuator(mray, "127.0.0.1", 20011)
-    replacement = Replacer(mray, "224.5.23.2", 10004)
+    replacement = Replacer(mray, "224.5.23.2", 5)
     vision = Vision(mray, "224.0.0.1", 10002)
     referee = Referee(mray, "224.5.23.2", 10003)
 
@@ -76,7 +78,10 @@ if __name__ == "__main__":
         # Update penalty strategy (ap == adaptative penalty) when game is running
         #if args.ap == 'on':
         strategy.detectGoalPenalty(ref_data, ball, mray)
+        if not mray:
+            sideDecider((robot1.xPos, robot1.yPos), robot1.theta, (ball.xPos, ball.yPos), robot1.index)
 
+        """
         if ref_data["game_on"]:
             # If the game mode is set to "Game on"
             strategy.decider()
@@ -116,6 +121,8 @@ if __name__ == "__main__":
             actuator.stop()
         #print(strategy.kickoffOffensive)
 
+        """
+        
         # synchronize code execution based on runtime and the camera FPS
         t2 = time.time()
         if t2 - t1 < 1 / 60:

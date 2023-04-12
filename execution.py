@@ -2,7 +2,7 @@ from numpy import cos, sin, arctan2, sqrt, sign, pi, delete, append, array
 
 from behaviours import Univector
 from corners import target_in_corner
-
+from SeletorDeface import sideDecider
 
 '''
 Input: Robot object, Target object, Flag to activate Obstacle Avoidance, Obstacle object,
@@ -119,6 +119,10 @@ Output: theta_e -> Angle error (float)
 '''
 def which_face(robot, target, des_theta, double_face):
     theta_e = arctan2(sin(des_theta - robot.theta), cos(des_theta - robot.theta))  # Error estimation with current face
+    robot_pos = (robot.xPos, robot.yPos)  # Robot position
+    target = (target.xPos, target.yPos)  # Target position
+
+    uni_vector = sideDecider(robot_pos, robot.theta, target, robot.index)  # Decides the side to go
 
     if (abs(theta_e) > pi / 2 + pi / 12) and (
             not robot.flagTrocaFace) and double_face:  # If the angle is convenient for face swap
@@ -126,4 +130,4 @@ def which_face(robot, target, des_theta, double_face):
         robot.theta = arctan2(sin(robot.theta + pi), cos(robot.theta + pi))  # Angle re-estimate
         theta_e = arctan2(sin(des_theta - robot.theta), cos(des_theta - robot.theta))  # Error angle re-estimate
 
-    return theta_e
+    return theta_e * uni_vector
