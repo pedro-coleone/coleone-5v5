@@ -181,8 +181,8 @@ class Strategy:
         Output: None."""
         if not self.mray:
             if self.ball._coordinates.X < 40 and 30 < self.ball._coordinates.Y < 110:  # If the ball has inside of defense area
-                action.defender_penalty_spin(self.robots[0], self.ball,
-                                             left_side=not self.mray)  # Goalkeeper move ball away
+                action.defender_penalty_direct(self.robots[0], self.ball,
+                                             left_side=not self.mray, friends=self.robots, enemies=self.enemy_robots)  # Goalkeeper move ball away
                 action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
             else:
                 action.defender_spin(self.robots[1], self.ball, left_side=not self.mray)  # Defender chases ball
@@ -190,7 +190,8 @@ class Strategy:
                                        lower_lim=42)  # Goalkeeper keeps in goal
         else:  # The same idea for other team
             if self.ball._coordinates.X > 130 and 30 < self.ball._coordinates.Y < 110:
-                action.defender_penalty_spin(self.robots[0], self.ball, left_side=not self.mray)
+                action.defender_penalty_direct(self.robots[0], self.ball,
+                                               left_side=not self.mray, friends=self.robots, enemies=self.enemy_robots)
                 action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
             else:
                 action.defender_spin(self.robots[1], self.ball, left_side=not self.mray)

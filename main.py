@@ -15,18 +15,17 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--team', type=str, default="blue",
                         help="Define o time/lado que será executado: blue ou yellow")
     parser.add_argument('-s', '--strategy', type=str, default="twoAttackers",
-                        help="Define a estratégia que será jogada: twoAttackers ou default" )
+                        help="Define a estratégia que será jogada: twoAttackers ou default")
     parser.add_argument('-nr', '--num_robots', type=int, default=3,
                         help="Define a quantia de robos de cada lado")
     parser.add_argument('-op', '--offensivePenalty', type=str, default='spin', dest='op',
                         help="Define o tipo de cobrança ofensiva de penalti: spin ou direct")
     parser.add_argument('-dp', '--defensivePenalty', type=str, default='direct', dest='dp',
                         help="Define o tipo de defesa de penalti: spin ou direct")
-    parser.add_argument('-aop', '--adaptativeOffensivePenalty', type=str, default='off', dest='aop', 
+    parser.add_argument('-aop', '--adaptativeOffensivePenalty', type=str, default='off', dest='aop',
                         help="Controla a troca de estratégias de penalti durante o jogo")
-    parser.add_argument('-adp', '--adaptativeDeffensivePenalty', type=str, default='off', dest='adp', 
+    parser.add_argument('-adp', '--adaptativeDeffensivePenalty', type=str, default='off', dest='adp',
                         help="Controla a troca de estratégias de penalti durante o jogo")
-
 
     args = parser.parse_args()
 
@@ -35,7 +34,6 @@ if __name__ == "__main__":
         mray = True
     else:
         mray = False
-
 
     # Initialize all clients
     actuator = Actuator(mray, "127.0.0.1", 20011)
@@ -81,7 +79,7 @@ if __name__ == "__main__":
         # Updates vision data on each field object
         for index, robot in enumerate(robots):
             robot.set_simulator_data(data_our_bot[index])
-        
+
         for index, robot in enumerate(enemy_robots):
             robot.set_simulator_data(data_their_bots[index])
 
@@ -106,12 +104,20 @@ if __name__ == "__main__":
                     # detecting defensive penalty
                     strategy.penalty_state = 2
                     actuator.stop()
-                    fouls.replacement_fouls(replacement, ref_data, mray, strategy.penalty_handler.offensive_penalty_tactics[strategy.penalty_handler.current_offensive_tactic], strategy.penalty_handler.defensive_penalty_tactics[strategy.penalty_handler.current_defensive_tactic])
+                    fouls.replacement_fouls(replacement, ref_data, mray,
+                                            strategy.penalty_handler.offensive_penalty_tactics[
+                                                strategy.penalty_handler.current_offensive_tactic],
+                                            strategy.penalty_handler.defensive_penalty_tactics[
+                                                strategy.penalty_handler.current_defensive_tactic])
                 case 1 if ref_data["yellow"] == mray:
                     # detecting offensive penalty
                     strategy.penalty_state = 1
                     actuator.stop()
-                    fouls.replacement_fouls(replacement, ref_data, mray, strategy.penalty_handler.offensive_penalty_tactics[strategy.penalty_handler.current_offensive_tactic], strategy.penalty_handler.defensive_penalty_tactics[strategy.penalty_handler.current_defensive_tactic])
+                    fouls.replacement_fouls(replacement, ref_data, mray,
+                                            strategy.penalty_handler.offensive_penalty_tactics[
+                                                strategy.penalty_handler.current_offensive_tactic],
+                                            strategy.penalty_handler.defensive_penalty_tactics[
+                                                strategy.penalty_handler.current_defensive_tactic])
                 case 5:
                     fouls.replacement_fouls(replacement, ref_data, mray, args.op, args.dp)
                     actuator.stop()

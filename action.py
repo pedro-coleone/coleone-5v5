@@ -198,7 +198,8 @@ def calculate_arrival_angle_defender_spin(ball: simClasses.Ball, left_side):
     return arrival_angle
 
 
-def screen_out_ball(robot: simClasses.Robot, ball: simClasses.KinematicBody, static_point, left_side=True, upper_lim=200,
+def screen_out_ball(robot: simClasses.Robot, ball: simClasses.KinematicBody, static_point, left_side=True,
+                    upper_lim=200,
                     lower_lim=0):
     """Input: Robot object, ball object, point to project the ball, side of field (True = Left, False = Right), moviment limits(upper and lower), other robots objects (2 friend)
     Description: Project ball Y position to the selected X point.
@@ -524,6 +525,7 @@ def attack_penalty(robot):
     else:
         girar(robot, -10, -10)
 
+
 def attacker_penalty_switch(robot):
     girar(robot, -10, -10)
 
@@ -535,15 +537,15 @@ def attacker_penalty_direct(robot, ball, left_side=True):
     friends = robot.get_friends()
     arrival_angle = calculate_arrival_angle_attack_penalty(left_side, robot)
 
-    #robot.target.set_coordinates(ball._coordinates.X, ball._coordinates.Y, arrival_angle)
-    #linear_velocity, angular_velocity = calculate_velocities_defender(robot)
+    # robot.target.set_coordinates(ball._coordinates.X, ball._coordinates.Y, arrival_angle)
+    # linear_velocity, angular_velocity = calculate_velocities_defender(robot)
 
     if robot.teamYellow:
-        girar(robot,40,30)
+        girar(robot, 40, 30)
     else:
-        girar(robot,40,30)
+        girar(robot, 40, 30)
 
-    #robot.sim_set_vel(linear_velocity, angular_velocity)
+    # robot.sim_set_vel(linear_velocity, angular_velocity)
 
 
 def calculate_arrival_angle_attack_penalty(left_side, robot):
@@ -561,8 +563,30 @@ def calculate_arrival_angle_attack_penalty(left_side, robot):
     return arrival_angle
 
 
-def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, friend2=None, enemy1=None, enemy2=None, enemy3=None):
+def defender_penalty_direct(robot, ball, left_side=True, friends=None, enemies=None):
+    if enemies is None:
+        enemies = [None, None, None]
+    if friends is None:
+        friends = [None, None, None]
+    if left_side:
+        arrival_theta = arctan2(ball.get_coordinates().Y - 65,
+                                ball.get_coordinates().X - 10)  # Angle between the ball and point (150,65)
+    else:
+        arrival_theta = arctan2(ball.get_coordinates().Y - 65,
+                                ball.get_coordinates().X - 160)  # Angle between the ball and point (0,65)
+    robot.target.set_coordinates(ball.get_coordinates().X, ball.get_coordinates().Y, arrival_theta)
 
+    if friends[1] is None and friends[2] is None:  # No friends to avoid
+        v, w = univec_controller(robot, robot.target, avoid_obst=False, n=16, d=2)
+    else:  # Both friends to avoid
+        robot.obst.update()
+        v, w = univec_controller(robot, robot.target, True, robot.obst, n=4, d=4)
+
+    robot.sim_set_vel(v, w)
+
+
+def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, friend2=None, enemy1=None, enemy2=None,
+                                   enemy3=None):
     if abs(ball._velocities.X) < 0.01:
         v = 0
         w = 0
@@ -574,7 +598,7 @@ def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, fr
 
         if left_side:
             dx = ball._coordinates.X - 14
-            dy = dx*tan(phi)
+            dy = dx * tan(phi)
 
             proj_y = ball._coordinates.Y + dy
             proj_x = 14
@@ -583,13 +607,13 @@ def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, fr
             elif proj_y < 50:
                 proj_y = 50
             if proj_y > robot._coordinates.Y:
-                arrival_theta = pi/2
+                arrival_theta = pi / 2
             else:
-                arrival_theta = -pi/2
+                arrival_theta = -pi / 2
 
         else:
             dx = 156 - ball._coordinates.X
-            dy = dx*tan(theta)
+            dy = dx * tan(theta)
 
             proj_y = ball._coordinates.Y + dy
             proj_x = 156
@@ -598,9 +622,9 @@ def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, fr
             elif proj_y < 50:
                 proj_y = 50
             if proj_y > robot._coordinates.Y:
-                arrival_theta = pi/2
+                arrival_theta = pi / 2
             else:
-                arrival_theta = -pi/2
+                arrival_theta = -pi / 2
 
         robot.target.set_coordinates(proj_x, proj_y, arrival_theta)
 
@@ -621,6 +645,7 @@ def defender_penalty_spin_proj_vel(robot, ball, left_side=True, friend1=None, fr
                     w = 30
 
     robot.sim_set_vel(v, w)
+
 
 def play_follower(robot_follower: simClasses.Robot, robot_leader: simClasses.Robot, ball: simClasses.Ball,
              robot0: simClasses.Robot = None):
@@ -695,9 +720,9 @@ def follow_leader(robot1: simClasses.Robot, robot2: simClasses.Robot, ball: simC
         # If ball is on the defence side the leader does the screen out, and the follower follows his moves.
         if (ball_coordinates.X < 30) and (110 > ball_coordinates.Y > 30):
             if follower_coordinates.X < 30:
-                screen_out_ball(leader, leader, 55, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
+                screen_out_ball(leader, leader, 40, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
             else:
-                screen_out_ball(leader, ball, 55, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
+                screen_out_ball(leader, ball, 40, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
             play_follower(follower, leader, ball)
 
         else:  # If ball is on the attack side the leader does the defender spin, and the follower follows his moves.
@@ -714,9 +739,9 @@ def follow_leader(robot1: simClasses.Robot, robot2: simClasses.Robot, ball: simC
     if follower.teamYellow:
         if (ball_coordinates.X > 130) and (110 > ball_coordinates.Y > 30):
             if follower_coordinates.X > 130:
-                screen_out_ball(leader, leader, 55, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
+                screen_out_ball(leader, leader, 40, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
             else:
-                screen_out_ball(leader, ball, 55, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
+                screen_out_ball(leader, ball, 40, left_side=not leader.teamYellow, upper_lim=120, lower_lim=10)
             play_follower(follower, leader, ball)
 
         else:
@@ -749,6 +774,7 @@ def select_leader(robot1: simClasses.Robot, robot2: simClasses.Robot, ball: simC
                 leader = robot2
                 follower = robot1
                 leader_time = 0
+                print("Flip2" + str(leader_time))
 
         leader_time += 1
 
@@ -763,6 +789,7 @@ def select_leader(robot1: simClasses.Robot, robot2: simClasses.Robot, ball: simC
                 leader = robot1
                 follower = robot2
                 leader_time = 0
+                print("Flip1" + str(leader_time))
 
         leader_time += 1
 
