@@ -57,7 +57,7 @@ if __name__ == "__main__":
         referee.update()
         ref_data = referee.get_data()
 
-        print(ref_data)
+        #print(ref_data)
 
         # Update the vision data
         vision.update()

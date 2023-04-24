@@ -96,7 +96,7 @@ def hold_position(robot, xg, yg, des_theta, friend1=None, friend2=None):
 
     robot.sim_set_vel(v, w)
 
-def SendRobotPosition(mray, ref_data, strategy, if_else, number_robot):
+def SendRobotPosition(mray, ref_data, number_robot, strategy = None, if_else = None):
     """
     FREE_KICK = 0
     PENALTY_KICK = 1
@@ -149,17 +149,17 @@ def SendRobotPosition(mray, ref_data, strategy, if_else, number_robot):
         offensive_defensive_quadrant = 'quad2'
     elif ref_data["quad"] == 3:
         offensive_defensive_quadrant = 'quad3'
-    elif ref_data["quad"] == 4:
+    else:
         offensive_defensive_quadrant = 'quad4'
     
-    #Setting the goal kick strategy. strategy = if ou else
+    #Setting the goal kick strategy. strategy = if or else
     if game_situation == 'goal_kick' and if_else != None:
         if if_else == 'if':
             strategy = 'if'
         elif if_else == 'else':
             strategy = 'else'
     
-    if game_situation == 'penalty_kick' and if_else != None:
+    elif game_situation == 'penalty_kick' and if_else != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][if_else][list_robot[number_robot]]
     elif game_situation == 'penalty_kick' or game_situation == 'goal_kick' and strategy != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][list_robot[number_robot]]
