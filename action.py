@@ -151,7 +151,7 @@ def SendRobotPosition(mray, ref_data, number_robot, strategy = None, if_else = N
         offensive_defensive_quadrant = 'quad3'
     else:
         offensive_defensive_quadrant = 'quad4'
-    
+
     #Setting the goal kick strategy. strategy = if or else
     if game_situation == 'goal_kick' and if_else != None:
         if if_else == 'if':
@@ -159,7 +159,7 @@ def SendRobotPosition(mray, ref_data, number_robot, strategy = None, if_else = N
         elif if_else == 'else':
             strategy = 'else'
     
-    elif game_situation == 'penalty_kick' and if_else != None:
+    if game_situation == 'penalty_kick' and if_else != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][if_else][list_robot[number_robot]]
     elif game_situation == 'penalty_kick' or game_situation == 'goal_kick' and strategy != None:
         return data[side][game_situation][offensive_defensive_quadrant][strategy][list_robot[number_robot]]
