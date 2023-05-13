@@ -2,7 +2,6 @@ import time
 import sys
 import argparse
 
-import fouls
 import newFouls
 from bridge import (Actuator, Replacer, Vision, Referee)
 from simClasses import *
@@ -57,7 +56,7 @@ if __name__ == "__main__":
         referee.update()
         ref_data = referee.get_data()
 
-        #print(ref_data)
+        print(ref_data)
 
         # Update the vision data
         vision.update()
@@ -117,7 +116,7 @@ if __name__ == "__main__":
             #actuator.stop()
 
         else:
-            actuator.stop()
+           actuator.stop()
         #print(strategy.kickoffOffensive)
 
         # synchronize code execution based on runtime and the camera FPS

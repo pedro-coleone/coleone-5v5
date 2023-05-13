@@ -8,11 +8,11 @@ class Univector:
     '''
 
     def __init__(self):
-        self.d_e = 6        # Predefined radius that decides the size of the spiral.
-        self.k_r = 3        # Smoothing constant for vector field
-        self.delta = 3.5    # Variance gaussian parameter
-        self.k_o = 0.5      # Proportional constant of obstacle velocity
-        self.d_min = 3.5    # Minimum distance what the field becomes pure
+        self.d_e = 1.816        # Predefined radius that decides the size of the spiral.
+        self.k_r = 9.549        # Smoothing constant for vector field
+        self.delta = 3.516    # Variance gaussian parameter
+        self.k_o = 6.440      # Proportional constant of obstacle velocity
+        self.d_min = 9.308    # Minimum distance what the field becomes pure
 
 
     '''
@@ -121,8 +121,8 @@ class Univector:
 
         # Composition of the two hyperbolic spirals
         if -self.d_e <= y < self.d_e:
-            x_phi = 0.5 * (abs(yl) * n_ccw[0][0] + abs(yr) ** 2 * n_cw[0][0]) / self.d_e
-            y_phi = 0.5 * (abs(yl) * n_ccw[1][0] + abs(yr) ** 2 * n_cw[1][0]) / self.d_e
+            x_phi = 0.5 * (abs(yl) * n_ccw[0][0] + abs(yr) * n_cw[0][0]) / self.d_e
+            y_phi = 0.5 * (abs(yl) * n_ccw[1][0] + abs(yr) * n_cw[1][0]) / self.d_e
             phi = arctan2(y_phi, x_phi)
             phi = phi[0]
         elif y < -self.d_e:
@@ -198,10 +198,13 @@ class Univector:
         if d <= self.d_min:
             phi = self.ao_vec_field(robot, obst)
         else:
-            phi = self.gaussian_func(d - self.d_min) * self.ao_vec_field(robot, obst)
-            phi += (1 - self.gaussian_func(d - self.d_min)) * self.hip_vec_field(robot, target)
+            phi_auf = self.ao_vec_field(robot, obst)
+            phi_tuf = self.hip_vec_field(robot, target)
+            diff = arctan2(sin(phi_auf - phi_tuf), cos(phi_auf - phi_tuf))
+            gauss = self.gaussian_func(d - self.d_min)
+            phi = gauss * diff + phi_tuf
 
-        return phi
+        return arctan2(sin(phi), cos(phi))
 
     '''
     Input: Robot object, Target object, Obstacle object

@@ -102,7 +102,7 @@ def SendRobotPosition(mray, ref_data, number_robot, strategy = None, if_else = N
     PENALTY_KICK = 1
     GOAL_KICK = 2
     FREE_BALL = 3
-    KICKOFF = 4 (Testando para o kickoff)
+    KICKOFF = 4 
     STOP = 5
     GAME_ON = 6
     HALT = 7    
@@ -167,6 +167,10 @@ def SendRobotPosition(mray, ref_data, number_robot, strategy = None, if_else = N
     return data[side][game_situation][offensive_defensive_quadrant][list_robot[number_robot]]
 
 def Robot2Position(robot, ball, friend1, friend2, enemy1, enemy2, enemy3, list_r0, list_r1, list_r2):
+    list_r0[2] = deg2rad(list_r0[2])
+    list_r1[2] = deg2rad(list_r1[2])
+    list_r2[2] = deg2rad(list_r2[2])
+    
     robot.target.update(list_r0[0], list_r0[1], list_r0[2]) #xpos, ypos, theta
     friend1.target.update(list_r1[0], list_r1[1], list_r1[2]) #xpos, ypos, theta
     friend2.target.update(list_r2[0], list_r2[1], list_r2[2]) #xpos, ypos, theta
