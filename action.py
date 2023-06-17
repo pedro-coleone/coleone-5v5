@@ -389,9 +389,9 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
         if not robot1.teamYellow:
             if ball.xPos < 40 and (130 > ball.yPos > 50): # If ball is in defence side the robot 2 do the screen out, and the robot 1 follow his moves
                 if robot1.xPos < 30:
-                    screenOutBall(robot2, robot2, 55, leftSide=not robot2.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot2, robot2, 55, leftSide=not robot2.teamYellow, upperLim=120, lowerLim=10)
                 else:
-                    screenOutBall(robot2, ball, 55, leftSide=not robot2.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot2, ball, 55, leftSide=not robot2.teamYellow, upperLim=120, lowerLim=10)
                 follower(robot1, robot2, ball, robot0, robot_enemy_0, robot_enemy_1, robot_enemy_2, robot_enemy_3, robot_enemy_4)
 
             else:  # If ball is in attack side the robot 2 do the defender spin, and the robot 1 follow his moves
@@ -413,9 +413,9 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
         else:
             if ball.xPos > 195 and (120 > ball.yPos > 50):
                 if robot1.xPos > 180:
-                    screenOutBall(robot2, robot2, 55, leftSide=not robot2.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot2, robot2, 55, leftSide=not robot2.teamYellow, upperLim=120, lowerLim=10)
                 else:
-                    screenOutBall(robot2, ball, 55, leftSide=not robot2.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot2, ball, 55, leftSide=not robot2.teamYellow, upperLim=120, lowerLim=10)
                 follower(robot1, robot2, ball, robot0, robot_enemy_0, robot_enemy_1, robot_enemy_2, robot_enemy_3, robot_enemy_4)
 
             else:
@@ -434,9 +434,9 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
         if not robot1.teamYellow:
             if ball.xPos < 35 and (120 > ball.yPos > 50):
                 if robot1.xPos < 35:
-                    screenOutBall(robot1, robot1, 55, leftSide=not robot1.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot1, robot1, 55, leftSide=not robot1.teamYellow, upperLim=120, lowerLim=10)
                 else:
-                    screenOutBall(robot1, ball, 55, leftSide=not robot1.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot1, ball, 55, leftSide=not robot1.teamYellow, upperLim=120, lowerLim=10)
                 follower(robot2, robot1, ball, robot0, robot_enemy_0, robot_enemy_1, robot_enemy_2, robot_enemy_3, robot_enemy_4)
 
             else:
@@ -453,9 +453,9 @@ def followLeader(robot0, robot1, robot2, ball, robot_enemy_0, robot_enemy_1, rob
         else:
             if ball.xPos > 195 and (130 > ball.yPos > 50):
                 if robot1.xPos > 130:
-                    screenOutBall(robot1, robot1, 55, leftSide=not robot1.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot1, robot1, 55, leftSide=not robot1.teamYellow, upperLim=120, lowerLim=10)
                 else:
-                    screenOutBall(robot1, ball, 55, leftSide=not robot1.teamYellow, upper_lim=120, lower_lim=10)
+                    screenOutBall(robot1, ball, 55, leftSide=not robot1.teamYellow, upperLim=120, lowerLim=10)
                 follower(robot2, robot1, ball, robot0, robot_enemy_0, robot_enemy_1, robot_enemy_2, robot_enemy_3, robot_enemy_4)
 
             else:
@@ -485,6 +485,53 @@ def defenderPenalty(robot,ball,leftSide=True,friend1=None,friend2=None, enemy1=N
         v,w=univecController(robot,robot.target,True,robot.obst,n=4, d=4)
 
     robot.simSetVel(v,w)
+
+def circumferencePointProjection(robotTheta1, robotTheta2, ballTheta,r,xgoal, ygoal):
+
+    if robotTheta1 > robotTheta2:
+        ballTheta1 = ballTheta + pi/26 # + 6.9 graus
+        ballTheta2 = ballTheta - pi/26 # - 6.9 graus
+    else:
+        ballTheta1 = ballTheta - pi/26 # + 6.9 graus
+        ballTheta2 = ballTheta + pi/26 # - 6.9 graus
+
+    # Calcula a projeção usando a fórmula
+    xtarget1 = xgoal + r * cos(ballTheta1)
+    ytarget1 = ygoal + r * sin(ballTheta1)
+    xtarget2 = xgoal + r * cos(ballTheta2)
+    ytarget2 = ygoal + r * sin(ballTheta2)
+
+    # Retorna as coordenadas da projeção como uma tupla
+    return xtarget1, ytarget1, xtarget2, ytarget2
+
+def adjustArrivalThetaWall(ballTheta, robotTheta):
+    if (ballTheta < robotTheta):  
+        arrivalTheta = ballTheta - pi/2 
+    else:
+        arrivalTheta = ballTheta + pi/2
+
+    return arrivalTheta
+
+
+def defenderWall(robot1, robot2, ball,leftSide=True):
+    if leftSide:
+        xgoal = 15
+    else:
+        xgoal = 235
+    ballTheta=arctan2(ball.yPos-90,ball.xPos-xgoal)
+    robotTheta1=arctan2(robot1.yPos-90,robot1.xPos-xgoal)
+    robotTheta2=arctan2(robot2.yPos-90,robot2.xPos-xgoal)
+    xtarget1, ytarget1, xtarget2, ytarget2 = circumferencePointProjection(robotTheta1, robotTheta2, ballTheta, 40, xgoal, 90)
+
+    arrivalTheta1 = adjustArrivalThetaWall(ballTheta, robotTheta1)
+    arrivalTheta2 = adjustArrivalThetaWall(ballTheta, robotTheta2)
+
+    robot1.target.update(xtarget1, ytarget1, arrivalTheta1)
+    v,w=univecController(robot1,robot1.target,avoidObst=False, doubleFace=True, stopWhenArrive = True)
+    robot1.simSetVel(v*1.2,w*1.2)
+    robot2.target.update(xtarget2, ytarget2, arrivalTheta2)
+    v,w=univecController(robot2,robot2.target,avoidObst=False, doubleFace=True, stopWhenArrive = True)
+    robot2.simSetVel(v*1.2,w*1.2)
 
 def attackPenalty(robot,ball,leftSide=True,friend1=None,friend2=None, enemy1=None,  enemy2=None, enemy3=None):
     if leftSide:

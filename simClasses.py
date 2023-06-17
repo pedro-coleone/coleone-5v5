@@ -188,10 +188,16 @@ class Ball:
         self.yPos=0
         self.vx=0
         self.vy=0
-        self.pastPose=zeros(4).reshape(2,2) #? Stores the last 3 positions (x,y) => updated on self.simGetPose()
+        self.pastPose=zeros(6).reshape(3,2) #? Stores the last 3 positions (x,y) => updated on self.simGetPose()
 
     #% This method gets position of the ball in FIRASim
     def simGetPose(self, data_ball):
+        newPose = zeros(6).reshape(3,2)
+        newPose[0] = [self.xPos, self.yPos]
+        newPose[1] = self.pastPose[0]
+        newPose[2] = self.pastPose[1]
+        self.pastPose = newPose
+    
         self.xPos = data_ball.x + data_ball.vx*100*8/60
         self.yPos = data_ball.y + data_ball.vy*100*8/60
 
