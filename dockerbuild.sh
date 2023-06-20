@@ -3,4 +3,4 @@ xhost +local:docker
 
 ## Buildando o docker
 # docker build . -f Dockerfile -t nomedodocker
-docker build . -f Dockerfile -t reddragons
+docker build . -f Dockerfile -t reddragons5v5

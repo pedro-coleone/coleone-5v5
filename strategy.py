@@ -1,294 +1,356 @@
-import action, penalty_handler
+import action, attack, math, math_aux, identify_radius
 from numpy import *
 
-
 class Strategy:
-    """Input: Friendly robots, enemy robots, ball, side of field, strategy object.
-    Description: This class contains all functions and objects related to selecting a game strategy.
-    Output: None"""
-
-    def __init__(self, robots, enemy_robots, ball, mray, strategies):
-
+    def __init__(self, robots, enemy_robots, ball, mray):
         self.robots = robots
         self.enemy_robots = enemy_robots
         self.ball = ball
         self.mray = mray
-        self.score = [0, 0]  # Current score, [our score, enemy score]
-        self.penalty_state = 0  # 0 = no peanlty, 1 = offensive penalty, 2 = defensive penalty
-        self.strategy = strategies[0]
-        self.penaltyStrategies = strategies[1:3]
-        self.aop = strategies[3]
-        self.adp = strategies[4]
-        self.leader = None
-        self.follower = None
-        self.leader_time = 0
-        self.penalty_handler = penalty_handler.PenaltyHandler(self, self.robots, self.enemy_robots, self.ball,
-                                                              self.mray)
-        self.goal_already_happened = False
-
-    def handle_game_on(self):
-        if self.goal_already_happened:
-            self.goal_already_happened = False
-        self.decider()
-
-    def handle_goal(self, foul_was_yellow):
-        if self.goal_already_happened:
-            return
-        self.goal_already_happened = True
-        match self.mray:
-            case True if foul_was_yellow:
-                self.score[1] += 1
-                print("gol inimigo")
-            case True if not foul_was_yellow:
-                self.score[0] += 1
-                print("Gol nosso")
-            case False if foul_was_yellow:
-                self.score[0] += 1
-                print("Gol nosso")
-            case False if not foul_was_yellow:
-                self.score[1] += 1
-                print("gol inimigo")
-        print(self.score)
-
-    def get_score(self):
-        return self.score.copy()
-
-    def end_penalty_state(self):
-        self.penalty_state = 0
-
-    def set_leader(self, leader):
-        """Input: None
-        Description: Sets the leader robot.
-        Output: None."""
-        self.leader = leader
-
-    def set_follower(self, follower):
-        """Input: None
-        Description: Sets the follower robot.
-        Output: None."""
-        self.follower = follower
-
-    def get_leader(self):
-        """Input: None
-        Description: Returns the leader robot.
-        Output: Leader robot."""
-        return self.leader
-
-    def get_follower(self):
-        """Input: None
-        Description: Returns the follower robot.
-        Output: Follower robot."""
-        return self.follower
-
-    def set_leader_time(self, time):
-        """Input: Time
-        Description: Sets the time of the leader.
-        Output: None."""
-        self.leader_time = time
-
-    def get_leader_time(self):
-        """Input: None
-        Description: Returns the time of the leader.
-        Output: Time."""
-        return self.leader_time
-
-    def decider(self):
-        """Input: None
-        Description: Calls the function that initiates the selected strategy.
-        Output: Prints a warning in case of error."""
-        if self.penalty_state:
-            self.penalty_handler.handle_penalty(self.penalty_state, self.score.copy())
-            return
-        match self.strategy:
-            case 'default':
-                self.coach()
-            case 'twoAttackers':
-                self.coach2()
-            case _:
-                print("Strategy not found")
-
-    def coach2(self):
-        """Input: None
-        Description: Advanced strategy, one goalkeeper defends while two robots chase the ball, with one leading and the other in support.
-        Output: None."""
-        ball_coordinates = self.ball.get_coordinates()
-        if self.mray:
-            if ball_coordinates.X > 85:
-                self.stg_def_v2()
-            else:
-                self.stg_att_v2()
+        self.penaltyDefensive = False
+        self.penaltyOffensive = False
+        if mray:  # Goal coordinates for each team
+            self.our_goal_x = 235
+            self.our_goal_y = 90
+            self.their_goal_x = 15
+            self.their_goal_y = 90
         else:
-            if ball_coordinates.X > 85:
-                self.stg_att_v2()
-            else:
-                self.stg_def_v2()
+            self.our_goal_x = 15
+            self.our_goal_y = 90
+            self.their_goal_x = 235
+            self.their_goal_y = 90
+        self.radius = 37.5
+        self.marking_count = 0
+        self.upper_marking = None
+        self.is_marking = False
 
     def coach(self):
-        """Input: None
-        Description: The standard strategy, one robot as attacker, another as defender and another as goalkeeper.
-        Output: None."""
-        ball_coordinates = self.ball.get_coordinates()
-        if self.mray:
-            if ball_coordinates.X > 85:
-                self.basic_stg_def_2()
-            else:
-                self.basic_stg_att()
+        """"Picks a strategy depending on the status of the field"""
+        # For the time being, the only statuses considered are which side of the field the ball is in
+        if self.penaltyDefensive == True:
+            self.penaltyModeDefensive()
+        elif self.penaltyOffensive == True:
+            self.penaltyModeOffensiveSpin()
         else:
-            if ball_coordinates.x > 85:
-                self.basic_stg_att()
+            if self.mray:
+                if self.ball.xPos > 135:
+                    self.def_stg_5v5()
+                else:
+                    self.att_stg_5v5()
             else:
-                self.basic_stg_def_2()
+                if self.ball.xPos > 115:
+                    self.att_stg_5v5()
+                else:
+                    self.def_stg_5v5()
 
-    def basic_stg_def(self):
-        """Input: None
-        Description: Basic defence strategy, goalkeeper blocks goal and advance in ball, defender chases ball,
-                    attacker holds in midfield.
-        Output: None."""
-        ball_coordinates = self.ball.get_coordinates()
+    def basicStgDef(self):
+        """Basic original strategy"""
+        action.screenOutBall(self.robots[3], self.ball, 150, leftSide=not self.mray, upperLim=85, lowerLim=5)
+        action.screenOutBall(self.robots[4], self.ball, 150, leftSide=not self.mray, upperLim=175, lowerLim=95)
         if not self.mray:
-            if ball_coordinates.X < 30 and 30 < ball_coordinates.Y < 110:  # If the ball has inside of defense area
-                action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)  # Goalkeeper move ball away
-                action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
+            if self.ball.xPos < 40 and self.ball.yPos > 50 and self.ball.yPos < 130:
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+                action.screenOutBall(self.robots[1], self.ball, 55, leftSide=not self.mray, upperLim=85, lowerLim=5)
+                action.screenOutBall(self.robots[2], self.ball, 55, leftSide=not self.mray, upperLim=175, lowerLim=95)
             else:
-                action.shoot(self.robots[1], self.ball, left_side=not self.mray)  # Defender chases ball
-                action.screen_out_ball(self.robots[0], self.ball, 14, left_side=not self.mray, upper_lim=81,
-                                       lower_lim=42)  # Goalkeeper keeps in goal
-        else:  # The same idea for other team
-            if ball_coordinates.X > 130 and 30 < ball_coordinates.Y < 110:
-                action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
-                action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
+                #listRobots = [self.robots[0], self.robots[3], self.robots[4], self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                friends = [self.robots[0], self.robots[3], self.robots[4]]
+                enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                action.followLeader(self.robots[0], self.robots[1], self.robots[2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+                action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+        else:
+            if self.ball.xPos > 195 and self.ball.yPos > 50 and self.ball.yPos < 130:
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+                action.screenOutBall(self.robots[1], self.ball, 55, leftSide=not self.mray, upperLim=85, lowerLim=5)
+                action.screenOutBall(self.robots[2], self.ball, 55, leftSide=not self.mray, upperLim=175, lowerLim=95)
             else:
-                action.shoot(self.robots[1], self.ball, left_side=not self.mray)
-                action.screen_out_ball(self.robots[0], self.ball, 14, left_side=not self.mray, upper_lim=81,
-                                       lower_lim=42)
-
-        action.screen_out_ball(self.robots[2], self.ball, 110, left_side=not self.mray, upper_lim=120,
-                               lower_lim=10)  # Attacker stays in midfield
-
-    def basic_stg_att(self):
-        """Input: None
-        Description: Basic attack strategy, goalkeeper blocks goal, defender screens midfield, attacker chases ball.
-        Output: None."""
-        action.defender_spin(self.robots[2], self.ball, left_side=not self.mray)  # Attacker behavior
-        action.screen_out_ball(self.robots[1], self.ball, 60, left_side=not self.mray, upper_lim=120,
-                               lower_lim=10)  # Defender behavior
-        action.screen_out_ball(self.robots[0], self.ball, 14, left_side=not self.mray, upper_lim=81,
-                               lower_lim=42)  # Goalkeeper behavior
-
-    def basic_stg_def_2(self):
-        """Input: None
-        Description: Basic defense strategy with robot stop detection
-        Output: None."""
-        if not self.mray:
-            if self.ball._coordinates.X < 40 and 30 < self.ball._coordinates.Y < 110:  # If the ball has inside of defense area
-                action.defender_penalty_spin(self.robots[0], self.ball,
-                                             left_side=not self.mray)  # Goalkeeper move ball away
-                action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
-            else:
-                action.defender_spin(self.robots[1], self.ball, left_side=not self.mray)  # Defender chases ball
-                action.screen_out_ball(self.robots[0], self.ball, 14, left_side=not self.mray, upper_lim=81,
-                                       lower_lim=42)  # Goalkeeper keeps in goal
-        else:  # The same idea for other team
-            if self.ball._coordinates.X > 130 and 30 < self.ball._coordinates.Y < 110:
-                action.defender_penalty_spin(self.robots[0], self.ball, left_side=not self.mray)
-                action.screen_out_ball(self.robots[1], self.ball, 55, left_side=not self.mray)
-            else:
-                action.defender_spin(self.robots[1], self.ball, left_side=not self.mray)
-                action.screen_out_ball(self.robots[0], self.ball, 14, left_side=not self.mray, upper_lim=81,
-                                       lower_lim=42)
-
-        action.screen_out_ball(self.robots[2], self.ball, 110, left_side=not self.mray, upper_lim=120,
-                               lower_lim=10)  # Attacker stays in midfield
-
-        # Verification if robot has stopped
-        if ((abs(self.robots[0]._coordinates.rotation) < deg2rad(10)) or (
-                abs(self.robots[0]._coordinates.rotation) > deg2rad(170))) and (
-                self.robots[0]._coordinates.X < 20 or self.robots[0]._coordinates.X > 150):
+                #listRobots = [self.robots[0], self.robots[3], self.robots[4], self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                friends = [self.robots[0], self.robots[3], self.robots[4]]
+                enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                action.followLeader(self.robots[0], self.robots[1], self.robots[2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4])
+                action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+        if ((abs(self.robots[0].theta) < deg2rad(10)) or (abs(self.robots[0].theta) > deg2rad(170))) and (self.robots[0].xPos < 25 or self.robots[0].xPos > 225):
             self.robots[0].contStopped += 1
         else:
             self.robots[0].contStopped = 0
-
-    def stg_def_v2(self):
-        """Input: None
-        Description: Defence part of followleader method, a robot leads chasing ball, other supports, goalie blocks
-             goal and move ball away when close to the goal
-        Output: None."""
+    
+    def basicStgDef_alt(self):
+        """Basic original strategy"""
+        action.screenOutBall(self.robots[3], self.ball, 150, leftSide=not self.mray, upperLim=85, lowerLim=5)
+        action.screenOutBall(self.robots[4], self.ball, 150, leftSide=not self.mray, upperLim=175, lowerLim=95)
+        ball_trajectory = identify_radius.estimate_ball_trajectory(self.ball, self.our_goal_x)
         if not self.mray:
-            if self.ball._coordinates.X < 40 and 30 < self.ball._coordinates.Y < 110:  # If the ball has inside of defense area
-                action.defender_penalty(self.robots[0], self.ball,
-                                             left_side=not self.mray)  # Goalkeeper move ball away
-                self.two_attackers()
+            if self.ball.xPos < 40 and self.ball.yPos > 50 and self.ball.yPos < 130:
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+                action.screenOutBall(self.robots[1], self.ball, 55, leftSide=not self.mray, upperLim=85, lowerLim=5)
+                action.screenOutBall(self.robots[2], self.ball, 55, leftSide=not self.mray, upperLim=175, lowerLim=95)
             else:
-                self.two_attackers()
-                action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84,
-                                       lower_lim=42)  # Goalkeeper stays on the goal
-        else:  # The same ideia, but for other team
-            if self.ball._coordinates.X > 130 and 30 < self.ball._coordinates.Y < 110:
-                action.defender_penalty(self.robots[0], self.ball, left_side=not self.mray)
-                self.two_attackers()
+                #listRobots = [self.robots[0], self.robots[3], self.robots[4], self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                friends = [self.robots[0], self.robots[3], self.robots[4]]
+                enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                action.followLeader(self.robots[0], self.robots[1], self.robots[2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+                if self.our_goal_y - 20 < ball_trajectory < self.our_goal_x + 20:
+                    action.screenOutBall_alt(self.robots[0], self.ball, 20, ball_trajectory, leftSide=not self.mray, upperLim=110, lowerLim=70)
+                else:
+                    action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+        else:
+            if self.ball.xPos > 195 and self.ball.yPos > 50 and self.ball.yPos < 130:
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+                action.screenOutBall(self.robots[1], self.ball, 55, leftSide=not self.mray, upperLim=85, lowerLim=5)
+                action.screenOutBall(self.robots[2], self.ball, 55, leftSide=not self.mray, upperLim=175, lowerLim=95)
             else:
-                self.two_attackers()
-                action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84,
-                                       lower_lim=42)
-
-        # Verification if robot has stopped
-        if ((abs(self.robots[0]._coordinates.rotation) < deg2rad(10)) or (
-                abs(self.robots[0]._coordinates.rotation) > deg2rad(170))) and (
-                self.robots[0]._coordinates.X < 20 or self.robots[0]._coordinates.X > 150):
+                #listRobots = [self.robots[0], self.robots[3], self.robots[4], self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                friends = [self.robots[0], self.robots[3], self.robots[4]]
+                enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+                action.followLeader(self.robots[0], self.robots[1], self.robots[2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4])
+                if self.our_goal_y - 20 < ball_trajectory < self.our_goal_x + 20:
+                    action.screenOutBall_alt(self.robots[0], self.ball, 20, ball_trajectory, leftSide=not self.mray, upperLim=110, lowerLim=70)
+                else:
+                    action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+                
+        if ((abs(self.robots[0].theta) < deg2rad(10)) or (abs(self.robots[0].theta) > deg2rad(170))) and (self.robots[0].xPos < 25 or self.robots[0].xPos > 225):
             self.robots[0].contStopped += 1
         else:
             self.robots[0].contStopped = 0
+    
+    def basicStgAtt(self):
+        """Basic alternative strategy"""
+        # listRobots = [self.robots[0], self.robots[1], self.robots[2],
+        #               self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+        friends = [self.robots[0], self.robots[1], self.robots[2]]
+        enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+        action.followLeader(self.robots[0], self.robots[3], self.robots[4], self.ball, self.enemy_robots[0], self.enemy_robots[1],
+                            self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4])
 
-    def stg_att_v2(self):
-        """Input: None
-        Description: Offence part of followleader method, one robot leads chasing ball, another supports, goalkeeper blocks goal.
-        Output: None."""
-        self.two_attackers()
-        action.screen_out_ball(self.robots[0], self.ball, 16, left_side=not self.mray, upper_lim=84, lower_lim=42)
-        self.robots[0].contStopped = 0
+        action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+        action.screenOutBall(self.robots[1], self.ball, 90, leftSide=not self.mray, upperLim=85, lowerLim=5)
+        action.screenOutBall(self.robots[2], self.ball, 90, leftSide=not self.mray, upperLim=175, lowerLim=95)
+    
+    def def_stg_5v5(self):
+        """ Wall defense using two defenders"""
 
-    def penalty_mode_offensive_spin(self):
-        """Input: None
-        Description: Penalty kick offence strategy with spin.
-        Output: None."""
-        ball_coordinates = self.ball.get_coordinates()
-        robot_coordinates = self.robots[2].get_coordinates()
-        action.screen_out_ball(self.robots[0], self.ball, 10, left_side=not self.mray)  # Goalkeeper keeps in defense
-        action.shoot(self.robots[1], self.ball, left_side=not self.mray)  # Defender going to the rebound
+        ball_trajectory = identify_radius.estimate_ball_trajectory(self.ball, self.our_goal_x)
 
-        if not self.robots[2].dist(self.ball) < 9:  # If the attacker is not closer to the ball
-            action.girar(self.robots[2], 100, 100)  # Moving forward
-        else:
-            if self.robots[2].teamYellow:  # Team verification
-                if self.robots[2].yPos < 65:
-                    action.girar(self.robots[2], 0, 100)  # Shoots the ball spinning up
-                else:
-                    action.girar(self.robots[2], 100, 0)  # Shoots the ball spinning down
+
+        if not self.mray:            
+            if self.ball.xPos < 35 and self.ball.yPos > 60 and self.ball.yPos < 120:
+
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
             else:
-                if self.robots[2].yPos > 65:
-                    action.girar(self.robots[2], 0, 100)  # Shoots the ball spinning down
+                if self.our_goal_y - 20 < ball_trajectory < self.our_goal_x + 20:
+                    action.screenOutBall_alt(self.robots[0], self.ball, 20, ball_trajectory, leftSide=not self.mray, upperLim=110, lowerLim=65)
                 else:
-                    action.girar(self.robots[2], 100, 0)  # Shoots the ball spinning up
+                    action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=65)
 
-        # If the ball gets away from the robot, stop the penalty mode
-        if sqrt((ball_coordinates.X - robot_coordinates.X) ** 2 + (ball_coordinates.Y - robot_coordinates.X) ** 2) > 30:
-            self.penaltyOffensive = False
+            action.defenderWall(self.robots[1], self.robots[2], self.ball, leftSide=not self.mray)
 
-    def penalty_mode_offensive_mirror(self):
-        ball_coordinates = self.ball.get_coordinates()
-        robot_coordinates = self.robots[2].get_coordinates()
-        action.screen_out_ball(self.robots[0], self.ball, 10, left_side=not self.mray)  # Goalkeeper keeps in defense
-        action.shoot(self.robots[1], self.ball, left_side=not self.mray)  # Defender going to the rebound
-        if self.robots[2].teamYellow:
-            action.girar(self.robots[2], 30, 40)
+            # if self.ball.xPos > 60:
+            #     action.followLeader(self.robots[0], self.robots[3], self.robots[4], self.ball,
+            #                         self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+            # else:
+            #     action.screenOutBall(self.robots[3], self.ball, 80, leftSide=not self.mray, upperLim=85, lowerLim=5)
+            #     action.screenOutBall(self.robots[4], self.ball, 80, leftSide=not self.mray, upperLim=175, lowerLim=95)
+
+            action.followLeader(self.robots[0], self.robots[3], self.robots[4], self.ball,
+                                self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+            
         else:
-            action.girar(self.robots[2], 40, 30)
-        if sqrt((ball_coordinates.X - robot_coordinates.X) ** 2 + (
-                ball_coordinates.Y - robot_coordinates.Y) ** 2) > 20:
-            self.penaltyOffensive = False
+            if self.ball.xPos > 215 and self.ball.yPos > 60 and self.ball.yPos < 120:
+                action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+            else:
+                if self.our_goal_y - 20 < ball_trajectory < self.our_goal_x + 20:
+                    action.screenOutBall_alt(self.robots[0], self.ball, 20, ball_trajectory, leftSide=not self.mray, upperLim=115, lowerLim=65)
+                else:
+                    action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=115, lowerLim=65)
 
-    def two_attackers(self):
+            action.defenderWall(self.robots[1], self.robots[2], self.ball, leftSide=not self.mray)
+
+            # if self.ball.xPos < 190:
+            #     action.followLeader(self.robots[0], self.robots[3], self.robots[4], self.ball,
+            #                         self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+            # else:
+            #     action.screenOutBall(self.robots[3], self.ball, 80, leftSide=not self.mray, upperLim=85, lowerLim=5)
+            #     action.screenOutBall(self.robots[4], self.ball, 80, leftSide=not self.mray, upperLim=175, lowerLim=95)
+
+            action.followLeader(self.robots[0], self.robots[3], self.robots[4], self.ball,
+                                self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2],self.enemy_robots[3],self.enemy_robots[4])
+        
+        if ((abs(self.robots[0].theta) < deg2rad(10)) or (abs(self.robots[0].theta) > deg2rad(170))) and (self.robots[0].xPos < 25 or self.robots[0].xPos > 225):
+            self.robots[0].contStopped += 1
+        else:
+            self.robots[0].contStopped = 0       
+
+
+    def att_stg_5v5(self):
         """Input: None
-        Description: Calls leader and follower technique for use in strategies.
+        Description: Attack strategy to 5v5, 2 defenders follow a semi circle where the ball is projected,
+                     3 attakers chase the ball.
         Output: None."""
-        action.follow_leader(self.robots[1], self.robots[2], self.ball, self)
+        ball_coordinates_x, ball_coordinates_y = self.ball.get_coordinates()
+        # print(f"Ball's velocity vx = {self.ball.vx}, vy = {self.ball.vy}")
+
+        dist_ball_goal = sqrt((ball_coordinates_x - self.their_goal_x) ** 2 + (ball_coordinates_y - self.their_goal_y) ** 2)
+
+        up_corner_y = 180
+        down_corner_y = 0
+        
+        # Calculates a estimated value to the radius of the enemy deffence
+        if self.radius is None:
+            self.radius = identify_radius.estimate_radius(self.enemy_robots, self.their_goal_x, self.their_goal_y)
+        else:
+            self.radius = (identify_radius.estimate_radius(self.enemy_robots, self.their_goal_x, self.their_goal_y) + self.radius) / 2
+        
+        if self.radius < 30:
+            self.radius = 30
+        elif self.radius > 55:
+            self.radius = 55
+        
+        # print(f"Estimated radius = {self.radius}")
+        
+        # self.radius = 37.5
+
+        # Robôs 0 e 1 mantém-se na defese
+        # Robôs 2, 3 e 4 vão para o ataque
+
+        # Maximum angle to implement the mark of the deffence
+        max_angle = math.pi / 6
+
+        # Calculates angle between ball, goal's center and field borders
+        if ball_coordinates_y > self.their_goal_y:
+            ball_angle = math_aux.angle_between_pair_lines(ball_coordinates_x, ball_coordinates_y, self.their_goal_x, up_corner_y, self.their_goal_x, self.their_goal_y, not self.mray)
+        else:
+            ball_angle = math_aux.angle_between_pair_lines(ball_coordinates_x, ball_coordinates_y, self.their_goal_x, down_corner_y, self.their_goal_x, self.their_goal_y, not self.mray)
+        # print(f"---> Angle between ball an enemy goal = {ball_angle}")
+
+        # Marks deffence depending on the angle value
+        if ball_angle < max_angle and dist_ball_goal > self.radius and abs(ball_coordinates_x - self.their_goal_x) < 110 and self.marking_count < 60 * 10:
+            
+            # if not self.mray:
+            #     self.marking_count = action.marking_their_deffence2(self.robots[4], self.mray, self.their_goal_x, self.their_goal_y, self.radius, math.pi/6, self.marking_count)
+            # else:
+            #     self.marking_count = action.marking_their_deffence2(self.robots[4], self.mray, self.their_goal_x, self.their_goal_y, self.radius, math.pi/6, self.marking_count)
+            
+            print(f"---> Angle between ball an enemy goal = {ball_angle}")
+
+            min_dist = 300
+            for index, robot in enumerate(self.robots):
+                dist = sqrt((robot.xPos - self.their_goal_x) ** 2 + (robot.yPos - self.their_goal_y) ** 2)
+                if dist < min_dist:
+                    closest_robot_index = index
+
+            self.marking_count = action.marking_their_deffence2(self.robots[closest_robot_index], not self.mray,
+                                                                self.their_goal_x, self.their_goal_y, self.radius, math.pi/4, self.marking_count)
+            
+            if not self.is_marking:
+                self.is_marking = True
+
+                if ball_coordinates_y > 90:
+                    self.upper_marking = True
+                else:
+                    self.upper_marking = False
+            
+            id_attackers = [2, 3, 4]
+            id_attackers.remove(closest_robot_index)
+
+            print(f"Robot {closest_robot_index} is marking defence.")
+            print(f"Robots {id_attackers[0]} and {id_attackers[1]} are attacking.")
+
+            # Strategy list: default; defence infiltration
+            self.two_attackers(id_robot1=id_attackers[0], id_robot2=id_attackers[1], upper_marking=self.upper_marking, strategy='defence infiltration')
+
+        else:
+
+            self.marking_count = 0
+            self.is_marking = False
+
+            # Strategy list: 3 leaders; 2 leadres; 1 leader
+            self.three_attackers(id_robot1=2, id_robot2=3, id_robot3=4, strategy='2 leaders')
+        
+        # Sends the remaining robots to form the Troia's Defence
+        # (projection onto semi-circle goal centered)
+        # action.screenOutBall(self.robots[1], self.ball, 90, leftSide=not self.mray, upperLim=180, lowerLim=0)
+        # action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray, upperLim=110, lowerLim=70)
+        action.defenderWall(self.robots[1], self.robots[0], self.ball, leftSide=not self.mray)
+
+    def penaltyModeDefensive(self):
+        '''Strategy to defend penalty situations'''
+        action.defenderPenalty(self.robots[0], self.ball, leftSide=not self.mray)
+
+        enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+        friends = [self.robots[0], self.robots[2], self.robots[3], self.robots[4]]
+        action.shoot(self.robots[1],self.ball,not self.mray,friends,enemys)
+
+        friends = [self.robots[0], self.robots[1], self.robots[3], self.robots[4]]
+        action.shoot(self.robots[2],self.ball,not self.mray,friends,enemys)
+
+        if not self.mray:
+            if self.ball.xPos >53 or self.ball.yPos < 60 or self.ball.yPos > 120:
+                self.penaltyDefensive = False
+        else:
+            if self.ball.xPos < 182 or self.ball.yPos < 60 or self.ball.yPos > 100:
+                self.penaltyDefensive = False
+
+    def penaltyModeOffensiveSpin(self):
+        '''Strategy to convert penalty offensive situations'''
+        action.screenOutBall(self.robots[0], self.ball, 20, leftSide=not self.mray)
+        action.screenOutBall(self.robots[1], self.ball, 90, leftSide=not self.mray, upperLim=85, lowerLim=5)
+
+        enemys = [self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4]]
+        friends = [self.robots[0], self.robots[1], self.robots[2], self.robots[4]]
+        action.shoot(self.robots[3],self.ball,not self.mray,friends,enemys)
+        friends = [self.robots[0], self.robots[1], self.robots[3], self.robots[4]]
+        action.shoot(self.robots[2],self.ball,not self.mray,friends,enemys)
+        if not self.robots[4].dist(self.ball) < 9:
+            action.girar(self.robots[4], 100, 100)
+        else:
+            if self.robots[4].teamYellow:
+                if self.robots[4].yPos < 90:
+                    action.girar(self.robots[4], 0, 100)
+                else:
+                    action.girar(self.robots[4], 100, 0)
+            else:
+                if self.robots[4].yPos > 90:
+                    action.girar(self.robots[4], 0, 100)
+                else:
+                    action.girar(self.robots[4], 100, 0)
+        if sqrt((self.ball.xPos-self.robots[4].xPos)**2+(self.ball.yPos-self.robots[4].yPos)**2) > 30:
+            self.penaltyOffensive = False
+    
+    def two_attackers(self, id_robot1, id_robot2, upper_marking, strategy = 'default'):
+        """Input: IDs of the 2 attackers.
+        Description: Attack strategy to 5v5 with 2 attackers (follower and leader).
+        Output: None."""
+        match strategy:
+            case 'default':
+                action.followLeader(self.robots[0], self.robots[id_robot1], self.robots[id_robot2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4])
+            case 'defence infiltration':
+                action.follow_leader_to_quadrant(self.robots[0], self.robots[id_robot1], self.robots[id_robot2], self.ball,
+                                                 self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4],
+                                                 upper_marking, self.their_goal_y)
+            case _:
+                print("Strategy is not defined, hence using default strategy, i.e., basic follower/leader).")
+                action.followLeader(self.robots[0], self.robots[id_robot1], self.robots[id_robot2], self.ball,
+                                    self.enemy_robots[0], self.enemy_robots[1], self.enemy_robots[2], self.enemy_robots[3], self.enemy_robots[4])
+    
+    def three_attackers(self, id_robot1, id_robot2, id_robot3, strategy = '1 leader'):
+        """Input: IDs of the 3 attackers and attack strategy.
+        Description: Attack strategy to 5v5 with 3 attackers between 3 different options.
+        Output: None."""
+
+        # print(f"Strategy used: {strategy}")
+
+        match strategy:
+            case '3 leaders':
+                attack.attack_3_leaders(self.ball, self.robots[id_robot1], self.robots[id_robot2], self.robots[id_robot3], self.mray, self.enemy_robots)
+            case '2 leaders':
+                attack.attack_2_leaders(self.ball, self.robots[id_robot1], self.robots[id_robot2], self.robots[id_robot3], self.mray, self.enemy_robots)
+            case '1 leader':
+                attack.attack_1_leaders(self.ball, self.robots[id_robot1], self.robots[id_robot2], self.robots[id_robot3], self.mray, self.enemy_robots)
+            case _:
+                print("Strategy is not defined, hence using default strategy, i.e., 3 leaders).")
+                attack.attack_3_leaders(self.ball, self.robots[id_robot1], self.robots[id_robot2], self.robots[id_robot3], self.mray, self.enemy_robots)

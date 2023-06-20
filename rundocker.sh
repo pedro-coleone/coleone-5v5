@@ -1,5 +1,5 @@
-DEFAULT_DOCKER_IMAGE="reddragons"
-DEFAULT_CONTAINER_NAME="reddragons_container"
+DEFAULT_DOCKER_IMAGE="reddragons5v5"
+DEFAULT_CONTAINER_NAME="reddragons5v5_container"
 
 WORK_DIR=`pwd`
 CONTAINER_WORK_DIR=$WORK_DIR

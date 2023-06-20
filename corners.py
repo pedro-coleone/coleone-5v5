@@ -1,90 +1,171 @@
-from numpy import arctan2, pi, deg2rad
-import simClasses
+from numpy import cos,sin,arctan2,sqrt,sign,pi,delete,append,array,angle, deg2rad
+# Estas funções são utilizadas para alterar a execução das estratégias do jogador nos cantos
+# Afim de impedir que ele fique travado
 
+def targetInCorner(target, robot):
 
-def handle_edge_behaviour(robot: simClasses.Robot):
-    """Handles the robot's behaviour when it is on an edge"""
-    edge = detect_edge(robot)
-    if edge != -1:
-        correct_edge_navigation(robot, edge)
-        correct_on_edge_arrival_angle(robot, edge)
+    corner = 0
+    flagCorner = False
+    if not robot.teamYellow:
+        if target.xPos < 30 and (target.yPos > 110 or target.yPos < 70):
+
+            flagCorner = True
+            corner = 1
+            if target.xPos < 20:
+                target.update(target.xPos+3, target.yPos, target.theta)
+            else:
+                target.update(target.xPos+1.5, target.yPos, target.theta)
+        elif target.xPos > 220 and (target.yPos > 110 or target.yPos < 70):
+
+            flagCorner = True
+            corner = 3
+            if target.xPos > 230:
+                target.update(target.xPos-3, target.yPos, target.theta)
+            else:
+                target.update(target.xPos-1.5, target.yPos, target.theta)
+        if target.yPos < 15:
+
+            flagCorner = True
+            corner = 2
+            if target.yPos < 5:
+                target.update(target.xPos,target.yPos+3, target.theta)
+            else:
+                target.update(target.xPos,target.yPos+1.5, target.theta)
+        elif target.yPos > 165:
+
+            flagCorner = True
+            corner = 4
+            if target.yPos > 175:
+                target.update(target.xPos,target.yPos-3, target.theta)
+            else:
+                target.update(target.xPos,target.yPos-1.5, target.theta)
     else:
-        robot.spin = False
+        if target.xPos < 30:
 
+            flagCorner = True
+            corner = 1
+            if target.xPos < 20:
+                target.update(target.xPos+3, target.yPos, target.theta)
+            else:
+                target.update(target.xPos+1.5, target.yPos, target.theta)
+        elif target.xPos > 220:
 
-def detect_edge(robot: simClasses.Robot) -> int:
-    """Determines the edge of the field the robot object is in"""
-    robot_coordinates = robot.get_coordinates()
-    edge = -1
+            flagCorner = True
+            corner = 3
+            if target.xPos > 230:
+                target.update(target.xPos-3, target.yPos, target.theta)
+            else:
+                target.update(target.xPos-1.5, target.yPos, target.theta)
+        if target.yPos < 15:
 
-    if robot_coordinates.X < 20:
-        edge = 1
+            flagCorner = True
+            corner = 2
+            if target.yPos < 5:
+                target.update(target.xPos,target.yPos+3, target.theta)
+            else:
+                target.update(target.xPos,target.yPos+1.5, target.theta)
+        elif target.yPos > 165:
 
-    if robot_coordinates.X > 150:
-        edge = 3
+            flagCorner = True
+            corner = 4
+            if target.yPos > 175:
+                target.update(target.xPos,target.yPos-3, target.theta)
+            else:
+                target.update(target.xPos,target.yPos-1.5, target.theta)
+    robot.spin = False
+    if flagCorner:
+        robot.spin = True
+        changeTargetTheta(robot, target,corner)
 
-    if robot_coordinates.Y < 10:
-        edge = 2
+    return flagCorner, corner
 
-    if robot_coordinates.Y > 120:
-        edge = 4
+def changeTargetTheta(robot, target,corner):
 
-    return edge
+    dist = sqrt((robot.xPos- target.xPos)**2 + (robot.yPos- target.yPos)**2)
 
+    if not robot.teamYellow:
+        if (corner == 2 or corner == 4):
+            if dist < 6:
+                if robot.yPos < 75:
+                    thetaGol = arctan2(90, 235- robot.xPos)
 
-def correct_edge_navigation(robot: simClasses.Robot, edge):
-    """Changes robot's target coordinates correcting for the edges so the robot doesn't get stuck"""
-    target = robot.get_target()
-    target_coordinates = target.get_coordinates()
-    x_correction = 0
-    y_correction = 0
-    match edge:
-        case 1:
-            x_correction = 3 if target_coordinates.X < 5 else 1.5
-        case 2:
-            x_correction = 3 if target_coordinates.X > 155 else 1.5
-        case 3:
-            y_correction = 3 if target_coordinates.Y < 5 else 1.5
-        case 4:
-            y_correction = 3 if target_coordinates.Y > 125 else 1.5
-        case _:
-            robot.spin = False
-            return
-    robot.spin = True
-    target.set_coordinates(target_coordinates.X + x_correction, target_coordinates.Y + y_correction,
-                           target_coordinates.rotation)
-
-
-def correct_on_edge_arrival_angle(robot: simClasses.Robot, edge):
-    """Corrects robot's arrival angle when it is on an edge"""
-    target = robot.get_target()
-    target_coordinates = target.get_coordinates()
-    distance_to_target = robot.calculate_distance(target)
-    robot_coordinates = robot.get_coordinates()
-    x_rotation_base = 160 if not robot.teamYellow else 10
-    pi_rotation = pi if not robot.teamYellow else -pi
-    match edge:
-        case 2 | 4:
-            if distance_to_target < 6:
-                if robot_coordinates.Y < 75:
-                    rotation_offset = arctan2(75, x_rotation_base - robot_coordinates.X)
                 else:
-                    rotation_offset = arctan2(-75, x_rotation_base - robot_coordinates.X)
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, rotation_offset)
+                    thetaGol = arctan2(-90, 235- robot.xPos)
+                target.update(target.xPos,target.yPos,thetaGol)
+            else:
+                target.update(target.xPos,target.yPos,0)
 
-                if target_coordinates.Y > 65 and robot.teamYellow:
-                    target.set_coordinates(target_coordinates.X, target_coordinates.Y, -pi + deg2rad(10))
+        elif robot.yPos > 120:
+            if corner == 1:
+                target.update(target.xPos,target.yPos,pi/2)
+            elif corner == 3:
+                target.update(target.xPos,target.yPos,-pi/2)
+        elif robot.yPos < 50:
+            if corner == 1:
+                target.update(target.xPos,target.yPos,-pi/2)
+            elif corner == 3:
+                target.update(target.xPos,target.yPos,pi/2)
+    else:
+        if (corner == 2 or corner == 4):
+            if dist < 6:
+                if robot.yPos < 90:
+                    thetaGol = arctan2(90, 15- robot.xPos)
                 else:
-                    target.set_coordinates(target_coordinates.X, target_coordinates.Y, pi - deg2rad(10))
-        case 1:
-            if robot_coordinates.Y > 110:
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, pi_rotation / 2)
-            elif robot_coordinates.Y < 40:
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, -pi_rotation / 2)
-        case 3:
-            if robot_coordinates.Y > 110:
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, -pi_rotation / 2)
-            elif robot_coordinates.Y < 40:
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, pi_rotation / 2)
+                    thetaGol = arctan2(-90, 15- robot.xPos)
+                target.update(target.xPos,target.yPos,thetaGol)
+            else:
+                if target.yPos > 90:
+                    target.update(target.xPos,target.yPos,-pi+deg2rad(10))
+                else:
+                    target.update(target.xPos,target.yPos, pi-deg2rad(10))
 
-                target.set_coordinates(target_coordinates.X, target_coordinates.Y, pi / 2)
+        elif robot.yPos > 120:
+            if corner == 1:
+                target.update(target.xPos,target.yPos,-pi/2)
+            elif corner == 3:
+                target.update(target.xPos,target.yPos,pi/2)
+        elif robot.yPos < 50:
+            if corner == 1:
+                target.update(target.xPos,target.yPos,pi/2)
+            elif corner == 3:
+                target.update(target.xPos,target.yPos,-pi/2)
+
+    return None
+
+def robotLockedCorner(target, robot):
+
+    corner = 0
+    flagLocked = False
+    if (robot.xPos < 18 and (robot.yPos > 120 or robot.yPos < 50)):
+        if (abs(robot.theta) < 0.35 or abs(robot.theta - pi) < 0.35):
+            flagLocked = True
+            corner = 1
+    elif (robot.xPos > 232 and (robot.yPos > 120 or robot.yPos < 50)):
+        if (abs(robot.theta) < 0.35 or abs(robot.theta - pi) < 0.35):
+            flagLocked = True
+            corner = 3
+    if robot.yPos < 5:
+        if ((abs(robot.theta) < ((pi/2)+0.35)) and (abs(robot.theta) > ((pi/2)-0.35))):
+            flagLocked = True
+            corner = 2
+    elif robot.yPos > 175:
+        if ((abs(robot.theta) < ((pi/2)+0.35)) and (abs(robot.theta) < ((pi/2)-0.35))):
+            flagLocked = True
+            corner = 4
+
+    if flagLocked:
+        changeTargetPos(robot, target,corner)
+
+    return flagLocked, corner
+
+def changeTargetPos(robot, target,corner):
+
+    if corner == 1:
+        target.update(robot.xPos+10,robot.yPos,0)
+    if corner == 2:
+        target.update(robot.xPos,robot.yPos+10,pi/2)
+    if corner == 3:
+        target.update(robot.xPos-10,robot.yPos,0)
+    if corner == 4:
+        target.update(robot.xPos,robot.yPos-10,-pi/2)
+    return None

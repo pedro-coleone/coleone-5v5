@@ -1,9 +1,10 @@
+
 """
 This module was created to interact with the FIRAClient
 located on https://github.com/yapiraUFPR/FIRAClient
 
 This interaction is made with the file libfira.cpp,
-which generates the shared object libfira.so used here.
+witch generates the shared object libfira.so used here.
 
 The classes located here use the lib subspace to store
 their respective client data.
@@ -54,16 +55,16 @@ lib.vision_robot_vx.restype = c_double
 lib.vision_robot_vy.restype = c_double
 lib.vision_robot_vangle.restype = c_double
 
-NUM_BOTS = 3
+NUM_BOTS = 5
 
-LENGTH = 1.7 / 2.0
-WIDTH = 1.3 / 2.0
+LENGTH = 2.5 / 2.0
+WIDTH = 1.8 / 2.0
 
-
-class Entity:
-    """Class used to determine the position, speed and direction
-    of any entity on the field."""
-
+class Entity():
+    '''
+    Class used to determine the position, speed and direction
+    of any entity on the field.
+    '''
     def __init__(self, x=0, y=0, vx=0, vy=0, a=0, va=0, index=0):
         self.x = x
         self.y = y
@@ -73,17 +74,17 @@ class Entity:
         self.va = va
         self.index = index
 
-
-# you can remove or modify these functions as you wish,
+# youcan remove or modify these functions as you wish,
 # these are used here mainly to run the example main
 def convert_width(w) -> float:
-    """Converts width from the simulator data to centimetres
-    with origin point on bottom left corner of field"""
+    """
+    Converts width from the simulator data to centimetres
+    with origin point on bottom left corner of field
+    """
     try:
         return (WIDTH + w) * 100
     except TypeError:
         return 0
-
 
 def inverse_width(w) -> float:
     try:
@@ -91,15 +92,15 @@ def inverse_width(w) -> float:
     except TypeError:
         return 0
 
-
 def convert_length(d) -> float:
-    """Converts width from the simulator data to centimetres
-    with origin point on bottom left corner of field"""
+    """
+    Converts width from the simulator data to centimetres
+    with origin point on bottom left corner of field
+    """
     try:
         return (LENGTH + d) * 100
     except TypeError:
         return 0
-
 
 def inverse_length(d) -> float:
     try:
@@ -107,16 +108,17 @@ def inverse_length(d) -> float:
     except TypeError:
         return 0
 
-
 def convert_angle(a) -> float:
-    """Converts the angle from full radians to
-    -Pi/2 to Pi/2 radians range"""
+    """
+    Converts the angle from full radians to
+    -Pi/2 to Pi/2 radians range
+    """
     try:
-        angle = fmod(a, 2 * pi)
+        angle = fmod(a, 2*pi)
         if (angle < -pi):
-            return angle + 2 * pi
+            return angle + 2*pi
         if (angle > pi):
-            return angle - 2 * pi
+            return angle - 2*pi
         return angle
     except TypeError:
         return 0
@@ -124,15 +126,20 @@ def convert_angle(a) -> float:
 
 # Client classes
 
-class Vision:
-    """Class for the vision client,
-    Use one instance at a time to minimize network errors."""
+class Vision():
+    """
+    Class for the vision client,
+    Use one instance at a time to minimize network errors.
+    """
 
-    def __init__(self, mray, addr="224.0.0.1", port=10002):
-        """Constructor initialized with address and port
+    def __init__(self, mray, addr = "224.0.0.1", port = 10002):
+        """
+        Constructor initialized with adress and port
+
         default address: "224.0.0.1"
         default port: 10002
-        Fetches the first field."""
+        Fetches the first field.
+        """
 
         self.mray = mray
 
@@ -149,8 +156,11 @@ class Vision:
         return lib.vision_update_field()
 
     def get_field_data(self):
-        """Returns a dict with the field info, 2 lists of entities
-            one for each team robots and a ball entity"""
+        '''
+            Returns a dict with the field info, 2 lists of entities
+            one for each team robots and a ball entity
+        '''
+
         field = dict()
         field["mray"] = self.mray
         try:
@@ -170,8 +180,11 @@ class Vision:
         return field
 
     def get_ball(self):
-        """Returns a Entity with the ball data
-        Use after the update method."""
+        """
+        Returns a Entity with the ball data
+        Use after the update method.
+        """
+
         try:
             # fills and return the new object
             ball = Entity()
@@ -187,9 +200,12 @@ class Vision:
         return ball
 
     def get_robot(self, index, yellow):
-        """Returns a Entity with the bot data
+        """
+        Returns a Entity with the bot data
         bot is given by index and get_yellow parametres
-        Use after the update method."""
+        Use after the update method.
+        """
+
         try:
             # fills and return bot object
             # get position
@@ -211,19 +227,23 @@ class Vision:
         return bot
 
     def __del__(self):
-        """Closes network connection"""
+        """Closes network conection"""
         lib.vision_term()
 
+class Referee():
+    """
+    Referee client class,
+    Use one instance at a time to minimize network errors.
+    """
 
-class Referee:
-    """Referee client class,
-    Use one instance at a time to minimize network errors."""
+    def __init__(self, mray, addr = "224.5.23.2", port = 10003):
+        """
+        Initialize client on addr and port
 
-    def __init__(self, mray, addr="224.5.23.2", port=10003):
-        """Initialize client on addr and port
-        default address: "224.5.23.2"
+        default adress: "224.5.23.2"
         default port: 10003
-        Fetches the first data."""
+        Fetches the first data.
+        """
 
         self.mray = mray
 
@@ -239,8 +259,10 @@ class Referee:
         lib.referee_update()
 
     def get_data(self):
-        """Returns a dict with the new data from referee
-        or default values (game stoped)."""
+        """
+        Returns a dict with the new data from referee
+        or default values (game stoped).
+        """
         data = dict()
 
         try:
@@ -257,7 +279,8 @@ class Referee:
         return data
 
     def interrupt_type(self):
-        """returns the type of interrupt
+        """
+        returns the type of interrupt
         being it a foul, game_on or halt
         From libfira.cpp:
             FREE_KICK = 0
@@ -267,58 +290,68 @@ class Referee:
             KICKOFF = 4
             STOP = 5
             GAME_ON = 6
-            HALT = 7"""
+            HALT = 7
+        """
         return lib.referee_get_interrupt_type()
 
     def color(self):
-        """Returns interrupt color data from libira:
+        """
+        Returns interrupt color data from libira:
             BLUE = 0,
             YELLOW = 1,
-            NONE = 2,"""
+            NONE = 2,
+        """
         return lib.referee_interrupt_color()
 
     def get_quadrant(self):
-        """returns quadrant on witch foul happened from:
+        """
+        returns quadrant on witch foul happened from:
             NO_QUADRANT = 0,
             QUADRANT_1 = 1,
             QUADRANT_2 = 2,
             QUADRANT_3 = 3,
-            QUADRANT_4 = 4,"""
+            QUADRANT_4 = 4,
+        """
         return lib.referee_get_interrupt_quadrant()
 
     def __del__(self):
-        """Closes network connection."""
+        """Closes network conection."""
         lib.referee_term()
 
-
 class Actuator():
-    """Actuator client class,
-    Use one instance at a time to minimize network errors."""
+    """
+    Actuator client class,
+    Use one instance at a time to minimize network errors.
+    """
 
-    def __init__(self, my_robots_are_yellow, addr="224.0.0.1", port=10002):
-        """ Initialize client on addr and port
+    def __init__(self, my_robots_are_yellow, addr = "224.0.0.1", port = 10002):
+        """
+        Initialize client on addr and port
 
-        default address: "224.0.0.1",
+        default adress: "224.0.0.1",
         default port: 10002
-        requires bool team_color to indicate later commands."""
+        requires bool team_color to indicate later comands.
+        """
 
         # we need to convert the string type
         c_string = addr.encode('utf-8')
         lib.actuator_init.argtypes = [c_char_p, c_uint16, c_bool]
 
         lib.actuator_init(c_string,
-                          c_uint16(port),
-                          c_bool(my_robots_are_yellow))
+                            c_uint16(port),
+                            c_bool(my_robots_are_yellow))
 
     def send(self, index, left, right):
-        """Sends motor speeds for one robot indicated by
-        index on team initialized."""
+        """
+        sends motor speeds for one robot indicated by
+        index on team initialized.
+        """
         lib.actuator_send_command(c_int32(index),
-                                  c_double(left),
-                                  c_double(right))
+                                    c_double(left),
+                                    c_double(right))
 
     def send_all(self, speeds):
-        """Sends a list of speed commands based on the passed list of dicts"""
+        """sends a list of speed commands based on the passed list of dicts"""
         for s in speeds:
             try:
                 self.send(s["index"], s["left"], s["right"])
@@ -330,34 +363,40 @@ class Actuator():
             self.send(i, 0, 0)
 
     def __del__(self):
-        """Closes network connection."""
+        """Closes network conection."""
         lib.actuator_term()
 
+class Replacer():
+    """
+    Actuator client class,
+    Use one instance at a time to minimize network errors.
+    """
 
-class Replacer:
-    """Actuator client class,
-    Use one instance at a time to minimize network errors."""
+    def __init__(self, my_robots_are_yellow, addr = "224.5.23.2", port = 10004):
+        """
+        Initialize client on addr and port
 
-    def __init__(self, my_robots_are_yellow, addr="224.5.23.2", port=10004):
-        """Initialize client on addr and port
-        default address: "224.5.23.2"
+        default adress: "224.5.23.2"
         default port: 10004
-        requires bool team_color to later commands."""
+        requires bool team_color to later comands.
+        """
         c_string = addr.encode('utf-8')
         lib.actuator_init.argtypes = [c_char_p, c_uint16, c_bool]
 
         lib.replacer_init(c_string,
-                          c_uint16(port),
-                          c_bool(my_robots_are_yellow))
+                            c_uint16(port),
+                            c_bool(my_robots_are_yellow))
 
     def place(self, index, x, y, angle):
-        """Sends a index indicated bot to x, y and angle.
-            *Needs to use seld.send() to actualy send, or use place_all"""
+        """
+            Sends a index indicated bot to x, y and angle.
+            *Needs to use seld.send() to actualy send, or use place_all
+        """
         lib.replacer_place_robot(c_int32(index),
-                                 c_double(inverse_length(x)),
-                                 c_double(inverse_width(y)),
-                                 c_double(angle))
-        # lib.replacer_send_frame()
+                                    c_double(inverse_length(x)),
+                                    c_double(inverse_width(y)),
+                                    c_double(angle))
+        #lib.replacer_send_frame()
 
     def place_all(self, placement):
         """Sends a list of Entities locations"""
@@ -370,13 +409,12 @@ class Replacer:
         lib.replacer_send_frame()
 
     def send(self):
-        """Actually sends the frame"""
+        '''Actualy sends the frame'''
         lib.replacer_send_frame()
 
     def __del__(self):
-        """Closes network connection."""
+        """Closes network conection."""
         lib.replacer_term()
-
 
 # Base test run
 if __name__ == "__main__":
@@ -389,7 +427,7 @@ if __name__ == "__main__":
         actuator = Actuator(mray)
         replacer = Replacer(mray)
     except Exception as e:
-        print("An error occurred during execution:", e)
+        print("An error occured during execution:", e)
         exit()
     print()
     print("Test completed!")
